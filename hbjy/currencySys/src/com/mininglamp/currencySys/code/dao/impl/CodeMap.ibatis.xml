@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="codeMapMapper">
+
+	<!-- 债券品种 -->
+	<select id="getZqfxZqpz" resultType="Map" parameterType="Map">
+		select t.code_key, t.code_value from CODE_INIS_ZQPZ t
+	</select>
+	<!--债券品种 -->
+	<select id="getZqpz" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "code_key", T.CODE_VALUE "code_value" from CODE_INIS_ZQPZ t
+	</select>
+	
+	<!-- 利率类型 -->
+	<select id="getLllx" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "code_key", T.CODE_VALUE "code_value" from CODE_INIS_LLLX t
+	</select>
+	
+	<!-- 利率类型 -->
+	<select id="getZqfxLllx" resultType="Map" parameterType="Map">
+		select t.code_key, t.code_value from CODE_INIS_LLLX t
+	</select>
+	
+	<!-- 息票类型 -->
+	<select id="getXPLX" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "code_key", T.CODE_VALUE "code_value" from CODE_TYWL_XPLX t
+	</select>
+	
+	<!-- 担保方式 -->
+	<select id="	" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "code_key", T.CODE_VALUE "code_value" from CODE_BHCL_FDBFS t
+	</select>
+	<select id="getZqfxXyjb" resultType="Map" parameterType="Map">
+		select T.CODE_KEY, T.CODE_VALUE from CODE_INIS_XYJB t
+	</select>
+	
+	<select id="getZqfxBz" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "id", T.CODE_VALUE "text" from CODE_BZ t
+	</select>
+	
+	<select id="getGrZjlx" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "code_key", T.CODE_VALUE "code_value" from CODE_BASIC_GRZJLX t
+	</select>
+	
+	<select id="getZhlx" resultType="Map" parameterType="Map">
+		select T.CODE_KEY "code_key", T.CODE_VALUE "code_value" from CODE_BASIC_ZHLX t
+	</select>
+	
+	<select id="getDepZhlx" resultType="Map" parameterType="Map">
+		select t.code_key "code_key", t.code_value "code_value" from CODE_DEP_ZJLX t
+	</select>
+	
+	<select id="getDepHylb" resultType="Map" parameterType="Map">
+		select t.code_key "code_key", t.code_value "code_value" from code_common_hylb t
+	</select>
+	<!-- 获取地区 -->
+	<select id="getDqmb" resultType="Map" parameterType="Map">
+		select code_key "id",code_value || '--' || code_key "text",higherarea "pid",dq_level from CODE_DQMB m start with m.code_key = '000000' connect by m.higherarea = prior m.code_key
+	</select>
+	
+	<!-- 通用获取码表值 -->
+	<select id="getCodeData" resultType="Map" parameterType="Map">
+	    select t.code_key "id",t.code_key || '--' || t.code_value "text" from ${table_name} t	
+	</select>
+	
+	<select id="getJgData" resultType="Map" parameterType="Map">
+		select h.br_no "id",h.jrjgbm "bm",h.jrjgmc || '--' || h.br_no "text",h.SJGLJGNBJGH "pid",h.sjgljgjrjgbm "pbm",h.sjgljgmc "ptext" from HBJYODS.JRJGXX h  start with h.BR_NO =  #{topNbjgh} connect by h.SJGLJGNBJGH = prior h.BR_NO
+	</select>
+	
+	<!-- 获取拉链表中有数据 所有日期 -->
+	<select id="getSJRQ" resultType="Map" parameterType="Map">
+		select to_char(SJRQ,'yyyy-mm-dd') SJRQ from ${table_name} where NBJGH=#{nbjgh } group by SJRQ
+	</select>
+	
+	<!-- 获取用户菜单（也即报表配置表）信息 -->
+	<select id="getUserAuthorityInfo" resultType="Map" parameterType="Map">
+		select * 
+		from user_authority ua
+		<where>
+			<if test="codeKey != null and codeKey != ''">
+			  and ua.code_key = #{codeKey}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查询配置表中除jgxx外所有表用到的码表名称 -->
+	<select id="getDbCodeTableNames" resultType="Map" parameterType="Map">
+		select distinct CONF_TABLE_NAME from t_check_rule_config where IS_CONTAIN_CONF_TABLE = '1' and CONF_TABLE_NAME is not null and table_name != 'jgxx'
+	</select>
+</mapper>

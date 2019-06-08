@@ -1,0 +1,720 @@
+@charset "utf-8";
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+form,
+div {
+    margin: 0;
+    padding: 0;
+}
+
+div,
+img,
+input,
+button {
+    box-sizing: border-box;
+}
+
+body {
+    background: #efefef;
+    font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft Yahei UI", "Microsoft YaHei", SimHei, "\5B8B\4F53", simsun, sans-serif;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+ul,
+ol,
+li {
+    list-style: outside none none;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.fl {
+    float: left;
+}
+
+.fr {
+    float: right;
+}
+
+
+
+/*  查询start*/
+
+.accurateSearchTop {
+    width: 90.6%;
+    margin: auto;
+    /* height: 45px; */
+}
+
+.accurateSearchTop input[name="area"],
+.accurateSearchTop input[name="company"] {
+    margin-right: 50px;
+    float: left;
+    margin-top: 15px;
+    width: 220px;
+    height: 30px;
+    border: 1px solid #aaa;
+    padding: 3px 8px;
+    border-radius: 5px;
+}
+
+.accurateSearchTop .btnBox {
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.accurateSearchTop .btnBox li,
+.brombxie-r .fanhui {
+    float: left;
+    width: 70px;
+    height: 30px;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 3px;
+    line-height: 30px;
+    background: #3d8de0;
+    color: #ffffff;
+}
+
+.accurateSearchTop .btnBox li {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.searchMainBox {
+    width: 99%;
+    margin: auto;
+    background: #ffffff;
+    margin-bottom: 30px;
+    padding: 20px;
+    border-radius: 3px;
+}
+
+.accurateSearchInputs {
+    padding-bottom: 60px;
+    position: relative;
+}
+
+.accurateSearchInputs ul {
+   /*  height: 135px; */
+    height: 88px;
+}
+
+.accurateSearchInputs li {
+    /* margin-right: 7%; */
+    /*  margin-right: 5%; */
+    float: left;
+    width: 25%;
+}
+
+.accurateSearchInputs li:last-child {
+    margin-right: 0%;
+}
+
+.accurateSearchInputs,
+.accurateSearchInputs ul,
+.accurateSearchInputs li {
+    overflow: hidden;
+}
+
+.accurateSearchInputs li {
+    height: 31px;
+    text-align: right;
+    line-height: 30px;
+    margin-bottom: 15px;
+    color: #333333;
+}
+
+.accurateSearchInputs li input,
+.accurateSearchInputs li select {
+    outline: none;
+    background: #f8f8f8;
+    margin-left: 15px;
+    width: 40%;
+    height: 30px;
+    color: #000;
+    border: 1px solid #aaa;
+    padding: 3px 8px;
+    border-radius: 5px;
+    float: left;
+}
+
+.accurateSearchInputs li span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 33%;
+    display: block;
+    float: left;
+}
+
+@media (max-width: 1359px) {
+	.importBtn,
+	.exportBtn,
+	.searchBtn,
+	.moreSearch {
+	    position: absolute;
+	    /* float: right; */
+	    width: 101px;
+	    height: 30px;
+	    margin-bottom: 30px;
+	}
+	
+	.searchBtn {
+	    bottom: 0px;
+	    right: 405px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.moreSearch {
+	    bottom: 0px;
+	    right: 270px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.moreSearch:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.moreSearch:active {
+	    background: url('../images/share/moreActive.png') no-repeat;
+	}
+	.exportBtn {
+	    bottom: 0px;
+	    right: 135px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.exportBtn:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.exportBtn:active {
+	    background: url('../images/share/moreActive.png') no-repeat;
+	}
+	
+	.importBtn {
+	    bottom: 0px;
+	    right: 0px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.importBtn:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.importBtn:active {
+	    background: url('../images/share/moreActive.png') no-repeat;
+	}
+	
+	.importBtn a,
+	.exportBtn a,
+	.moreSearch a,
+	.searchBtn a {
+	    text-decoration: none;
+	    color: #ffffff;
+	    font-size: 15px;
+	    display: block;
+	    width: 100%;
+	    height: 30px;
+	    line-height: 30px;
+	    left: 40px;
+	    cursor: pointer;
+	}
+	
+	.searchBtn:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.consult .consult-history {
+	    width: 100%;
+	     margin:-5px auto;
+	}
+}
+
+@media (min-width:1360px)and (max-width:1920px){
+	
+	.importBtn,
+	.exportBtn,
+	.searchBtn,
+	.moreSearch {
+	    position: absolute;
+	    float: right;
+	    width: 141px;
+	    height: 40px;
+	    margin-bottom: 20px;
+	}
+	
+	.searchBtn {
+	    bottom: 0px;
+	    right: 525px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.moreSearch {
+	    bottom: 0px;
+	    right: 350px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.moreSearch:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.moreSearch:active {
+	    background: url('../images/share/moreActive.png') no-repeat;
+	}
+	.exportBtn {
+	    bottom: 0px;
+	    right: 175px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.exportBtn:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.exportBtn:active {
+	    background: url('../images/share/moreActive.png') no-repeat;
+	}
+	
+	.importBtn {
+	    bottom: 0px;
+	    right: 0px;
+	    background: url('../images/share/moreLink.png') no-repeat;
+	    text-align: center;
+	}
+	
+	.importBtn:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	
+	.importBtn:active {
+	    background: url('../images/share/moreActive.png') no-repeat;
+	}
+	
+	.importBtn a,
+	.exportBtn a,
+	.moreSearch a,
+	.searchBtn a {
+	    text-decoration: none;
+	    color: #ffffff;
+	    font-size: 18px;
+	    display: block;
+	    width: 100%;
+	    height: 40px;
+	    line-height: 40px;
+	    left: 40px;
+	    cursor: pointer;
+	}
+	
+	.searchBtn:hover {
+	    background: url('../images/share/moreHover.png') no-repeat;
+	}
+	.moreSearch a,
+	.checkSee a {
+	    text-decoration: none;
+	    color: #ffffff;
+	    font-size: 18px;
+	    display: block;
+	    width: 100%;
+	    height: 40px;
+	    line-height: 40px;
+	    left: 40px;
+	    cursor: pointer;
+	}
+}
+
+
+#gridConsult th {
+    background: #f0f0f0 !important;
+}
+
+.consult .consult-head {
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    font-size: 16px;
+    color: #ffffff;
+}
+.consult-head {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    background: -webkit-linear-gradient(110deg, #2385f3, #11b8fe);
+    /* Safari 5.1 - 6.0 */
+    background: -o-linear-gradient(110deg, #2385f3, #11b8fe);
+    /* Opera 11.1 - 12.0 */
+    background: -moz-linear-gradient(110deg, #2385f3, #11b8fe);
+    /* Firefox 3.6 - 15 */
+    background: linear-gradient(110deg, #2385f3, #11b8fe);
+    /* IE */
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType = 1, startColorstr = #2385f3, endColorstr = #11b8fe);  
+    /* 标准的语法（必须放在最后） */
+}
+
+.btn-input-box>input {
+    width: calc(100% - 34px);
+    height: auto;
+    border: none;
+    text-indent: 10px;
+    background: none;
+    color: #999;
+    font-weight: normal;
+    margin-bottom: 0;
+    outline: 0;
+}
+
+/*登录*/
+
+.login {
+    width: 100%;
+    height: 100%;
+    background: url('../page/images/bg.jpg') center;
+    background-size: 100% 100%;
+    /* background-size:cover;  */
+    position: relative;
+    overflow: hidden;
+    filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(
+	src='../page/images/bg.jpg',
+	sizingMethod='scale');
+	-ms-filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(
+	src='../page/images/bg.jpg',
+	sizingMethod='scale');
+}
+
+.login .login-logo {
+    width: 10%;
+    position: absolute;
+    top: 19%;
+    left: 22%;
+}
+
+.login .login-form {
+    /* background-size: 100%;
+    width: 576px;
+    height: 528px; 
+    position: absolute;
+    top: 50%;
+    margin-top: -264px;
+    left: 50%;
+    margin-left: -288px; */
+    background: url('../page/images/login-bg.png') no-repeat 100% 100%;
+    position: absolute;
+    top: 13%;
+    right: 5%;
+    width: 480px;
+    height: 500px;
+   /*  background: url("./images/login-bg.png") no-repeat 100% 100%; */
+    background-size: 100% 100%;
+}
+
+.shadow_rel {
+    width: 70%;
+    margin: 0 auto;
+    margin-top: 110px;
+}
+
+.login .form-title {
+    width: 100%;
+    height: 35px;
+    line-height: 35px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 26px;
+    color: #1ba2c9;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.login .form-import {
+    /* width:82%; */
+    height: auto;
+    margin: 0 auto;
+}
+
+.login .bank-account,
+.bank-password {
+    width: 100%;
+}
+
+.login .urseName {
+    width: 100%;
+    height: 45px;
+    display: block;
+    border: 1px solid #59789a;
+    border-radius: 4px;
+    /*  float:left; */
+}
+
+.login .name-icon {
+    /* width:8%;  */
+    display: inline-block;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.login #urseName {
+    width: 88%;
+    height: 90%;
+    text-indent: 12px;
+    color: #1ba2c9;
+    border: none;
+    outline: none;
+    border-left: 1px solid #3e6084;
+    background: none;
+    margin-top: 5px;
+    font-size: 20px;
+}
+
+.login .clear_name {
+    /* width:8%; margin-right:2%; */
+    display: inline-block;
+    display: none;
+}
+
+.login .ursePassword {
+    width: 100%;
+    height: 90px;
+    display: block;
+    border: 1px solid #59789a;
+    border-radius: 4px;
+    /* float:left; */
+}
+
+.login .password-icon {
+    /* width:7.5%; */
+    display: inline-block;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.login #ursePassword {
+    width: 89%;
+    height: 90%;
+    text-indent: 12px;
+    color: #1ba2c9;
+    background: none;
+    border: none;
+    outline: none;
+    margin-top: 5px;
+    font-size: 20px;
+}
+
+.login .urseVerify {
+    width: 65%;
+    height: 45px;
+    display: block;
+    border: 1px solid #59789a;
+    border-radius: 4px;
+    float: left;
+}
+
+.login .verify-icon {
+    /* width:11%; */
+    display: inline-block;
+    margin-left: 3%;
+    margin-right: 2%;
+}
+
+.login #urseVerify {
+    width: 83%;
+    height: 72%;
+    text-indent: 12px;
+    color: #1ba2c9;
+    background: none;
+    border: none;
+    outline: none;
+    margin-top: 5px;
+    font-size: 20px;
+}
+
+.login .verify-img {
+    /* width:31%; */
+    float: right;
+}
+
+.jinggao {
+    /* display: none; */
+    color: #1ba2c9;
+    width: 100%;
+    height: 19px;
+    padding-left: 25px;
+    background: url('../images/share/errortishi.png') no-repeat center left;
+}
+
+
+
+/* checkbox背景色 */
+
+.login .bank-but {
+    /* width:82%; margin:0 auto; */
+    /* height: 48px;line-height: 48px; */
+    color: #098cad;
+    margin-top: 30px;
+}
+
+.btn {
+    border: none;
+    line-height: normal;
+    cursor: pointer;
+}
+
+input.remenberPassword {
+    border: 1px solid #1285a3;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+
+.bank-but>div:first-child {
+    color: #098cad;
+    float: left;
+    margin-top: 14px;
+    margin-right: 10px;
+}
+
+.span_checkText {
+    margin-top: 14px;
+}
+
+ .login .btn-primary {
+    width:100%; padding: 3px 12px; 
+    float: right;
+    width: 240px;
+    height: 48px;
+    background: url('../images/share/loginLink.png') no-repeat;
+} 
+
+.login .btn-primary:hover {
+    background: url('../images/share/loginHover.png') no-repeat;
+}
+
+.login .btn-primary:active {
+    background: url('../images/share/loginActive.png') no-repeat;
+}
+
+.login .validation-tips {
+    overflow: hidden;
+    width: 100%;
+    height: 25px;
+    line-height: 25px;
+    color: #1ba2c9;
+    /* float:left; */
+}
+
+.login .home-site {
+    width: 82%;
+    margin: 0 auto;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #033b81;
+}
+
+.login .shadow-rel {
+    width: 100%;
+    height: auto;
+    position: relative;
+}
+
+.login .login-shadow {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 100%;
+}
+
+@media screen and (max-width: 1680px) {
+    .login .bank-but {
+        margin-top: 40px;
+    }
+    .login .validation-tips {
+        height: 20px;
+        line-height: 20px;
+    }
+}
+
+@media screen and (min-width:1680px) and (max-width:1920px) {
+    /* .login .login-form{width:16%;} */
+}
+
+
+/*eayui 弹出框 start*/
+.fitem {
+	text-align: right;
+	margin-bottom: 8px;
+}
+.fitem input{
+	font-size: 12px;
+	border-radius: 4px;
+	fontWeight：bold;
+	margin: 0;padding: 0;border: 1px solid #95B8E7;background-color: #fff;
+}
+.datagrid-empty{
+    pointer-events: none
+}
+/*eayui 弹出框 end*/
+/* 媒体查询始终在最后 */
+
+/*表格中数据自动换行*/
+table{table-layout: fixed;} 
+.datagrid-body td{word-break: break-all; word-wrap:break-word;} 
+
+/*删除按钮*/
+.l-btn-text{
+	color: red;
+}
+
+/*编辑页面*/
+.left_side{  
+    width:200px;
+    float: left;
+}  
+.content{  
+    width:210px;;   
+}  
+.right_side{  
+    margin-left:410px;
+    margin-top:-22px;
+    text-align: left;
+}
+.textbox{
+	float: left;
+}
+.content input{
+	float: left;
+}
+#dlg{
+	width:80%;
+	height:500px;
+	padding:10px 20px;
+
+}
+/* 报送管理-报文管理-操作按钮 */
+.btn-gen-msg-opera{
+	color:rgb(0, 144, 53);
+	background-color: rgb(38, 34, 34);
+}
+

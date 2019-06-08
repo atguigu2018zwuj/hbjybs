@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserManageMapper">
+
+	<select id="getUserAuthority" parameterType="Map" resultType="Map">
+		SELECT
+		T.CODE_KEY KEY,
+		T.CODE_VALUE VALUE,
+		T.A_LEVEL A_LEVEL,
+		T.PID PID,
+		T.ID ID
+		FROM
+		<choose>
+			<when test="authority != null and authority != ''">
+				USER_AUTHORITY T
+				where 1=1
+				and T.id in (
+					SELECT  distinct(id) FROM USER_AUTHORITY 
+						START WITH id 
+						in(SELECT ID FROM USER_AUTHORITY WHERE 1=1 
+							and CODE_KEY in
+							<foreach collection="authority" item="item" index="index" separator="," open="(" close=")"> 
+								#{item}
+							</foreach>
+							<if test="notAllowAuthority == 'yes'">
+								and id != '31'
+							</if>
+						) 
+						CONNECT BY PRIOR pid = id
+				 )
+			</when>
+			<otherwise>
+				(
+				select tt.*, LEVEL as tree_level, CONNECT_BY_ISLEAF as tree_leaf from USER_AUTHORITY tt start with pid = '0' connect by prior id = pid
+				) T
+				where (markingcode is not null) or (markingcode is null and tree_leaf = 0) or (pid not like '1%')
+			</otherwise>
+		</choose>
+		<!-- <if test="authority != null and authority != ''">
+			and T.id in (
+				SELECT  distinct(id) FROM USER_AUTHORITY 
+					START WITH id 
+					in(SELECT ID FROM USER_AUTHORITY WHERE 1=1 
+						and CODE_KEY in
+						<foreach collection="authority" item="item" index="index" separator="," open="(" close=")"> 
+							#{item}
+						</foreach>
+						and id != '31'
+					) 
+					CONNECT BY PRIOR pid = id
+			 )
+		</if> -->
+	</select>
+	
+	<!--查询 -->
+	<select id="getUserManageInfo" parameterType="Map" resultType="Map">
+		SELECT 
+		T.ID ID,
+		T.YH_NAME YH_NAME,
+		T.YH_PWD YH_PWD,
+		T.NAME NAME,
+		T.TELEPH TELEPH,
+		T.SSBM SSBM,
+		T.AUTHORITY AUTHORITY,
+		T.IP IP,
+		T.DWBM,
+		S.JRJGBM DW_CODE,
+	  	S.JRJGMC DWMC,
+	  	S.JGJB DWJB,
+	  	S.BR_NO NBJGH,
+	  	CASE WHEN  T.SMSNOTICE = '1' THEN '是'
+	  		 ELSE '否'
+	  	END SMSNOTICE
+	  	from
+	  	USER_MANAGER T 
+	  	LEFT JOIN HBJYODS.jrjgxx S on S.BR_NO =T.DWBM 
+		where 1=1
+		<if test="YHNAME != '' and  YHNAME != null">
+			and T.yh_name like CONCAT(CONCAT('%',#{YHNAME}),'%') 
+		</if>
+		<if test="yhName != '' and  yhName != null">
+			and yh_name = #{yhName}
+		</if>
+<!-- 		<if test="id != '' and id != null">
+			and id <![CDATA[!= ]]>
+			#{id}
+		</if> -->
+		<if test="username != '' and username != null">
+			and yh_name != #{username}
+			and yh_name != 'admin'
+		</if>
+		<if test="NAME != '' and  NAME != null">
+			and T.NAME like CONCAT(CONCAT('%',#{NAME}),'%') 
+		</if>
+		<if test="TELEPH != '' and  TELEPH != null">
+			and T.TELEPH like CONCAT(CONCAT('%',#{TELEPH}),'%') 
+		</if>
+		<if test="SSBM != '' and  SSBM != null">
+			and T.SSBM like CONCAT(CONCAT('%',#{SSBM}),'%') 
+		</if>
+		<if test="JRJGBM != '' and  JRJGBM != null">
+			and S.JRJGBM like CONCAT(CONCAT('%',#{JRJGBM}),'%')
+		</if>
+		<if test="JRJGMC != '' and  JRJGMC != null">
+			and S.JRJGMC like CONCAT(CONCAT('%',#{JRJGMC}),'%')
+		</if>
+		<if test="JGJB != '' and  JGJB != null">
+			and S.JGJB like CONCAT(CONCAT('%',#{JGJB}),'%')
+		</if>
+		<if test="nbjgh != '' and nbjgh != null">
+			and T.DWBM in (select BR_NO from HBJYODS.jrjgxx h
+                    start with h.BR_NO =  #{nbjgh} connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		</if>
+		
+	</select>
+	
+	<!--插入 -->
+	<insert id="insertUserInfo" parameterType="Map">
+		insert into
+		USER_MANAGER(id,yh_name,yh_pwd,name,teleph,ssbm,authority,dwbm,smsNotice,ssjg)
+		values(USER_MANAGER_ID.nextval,#{yhName},
+		#{yhPWD},#{name},#{teleph},#{ssbm},#{authority},#{szdwMc},#{smsNotice},#{ssjg} )
+	</insert>
+	
+	<!--删除 -->
+	<delete id="deleteUserInfo" parameterType="Map">
+		delete from USER_MANAGER where id in
+		<foreach item="userItem" collection="id" open="(" separator=","
+			close=")">
+			#{userItem}
+		</foreach>
+	</delete>
+	
+	<!--更新 -->
+	<update id="updateUserInfo" parameterType="Map">
+		update USER_MANAGER
+		set yh_name = #{yhName},
+		yh_pwd = #{yhPWD},
+		name = #{name},
+		teleph =
+		#{teleph},
+		ssbm = #{ssbm},
+		authority = #{authority},
+		dwbm = #{szdwMc}, 
+		smsNotice = #{smsNotice} 
+		where id = #{id}
+	</update>
+
+	<!-- 重置密码 -->
+	<update id="getUserManageRecharge" parameterType="Map">
+		update USER_MANAGER t 
+		<if test="rechargeData != null and rechargeData != ''">
+			set YH_PWD = #{PASSWORD,jdbcType=VARCHAR} where 1=1 and t.ID in 
+			<foreach collection="rechargeData" item="item" index="index" separator="," open="(" close=")">
+				#{item.ID,jdbcType=VARCHAR}
+			</foreach>
+		</if>
+	</update>
+	
+	<select id="queryDwCode" parameterType="Map" resultType="Map">
+		<!-- select * from CODE_SBDW order by DQDM,DW_JB  -->
+		 SELECT
+			T.br_no "id",
+			T.jrjgmc "name",
+			T.jgjb "level",
+			T.sjgljgnbjgh "pId",
+			T.br_no "id"    
+		FROM
+		HBJYODS.jrjgxx T 
+		where 1=1
+		<if test="nbjgh != '' and nbjgh != null">
+			and T.br_no in (select BR_NO from HBJYODS.jrjgxx h
+                    start with h.BR_NO =  #{nbjgh} connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		</if>
+	    and T.jgjb in (#{level},#{levelTwo},#{levelThree})
+	</select>
+	
+	<update id="updateUser" parameterType="Map">
+		update USER_MANAGER
+		<set> 
+			<if test="xmm!=null and xmm!=''">
+				yh_pwd = #{xmm},
+			</if>
+			<if test="xm!=null and xm!=''">
+				name = #{xm},
+			</if>
+			<if test="dh!=null and dh!=''">
+				teleph =#{dh},
+			</if>
+			<if test="bm!=null and bm!=''">
+				ssbm = #{bm},
+			</if> 
+			<if test="dwbm!=null and dwbm!=''">
+				dwbm = #{dwbm},
+			</if> 
+		</set>
+		where yh_name = #{zh}
+	</update>
+	
+	<!--查询 -->
+	<select id="getUser" parameterType="Map" resultType="Map">
+		SELECT 
+		T.NAME NAME,
+		T.TELEPH TELEPH,
+		T.SSBM SSBM 
+		FROM USER_MANAGER T 
+		where 1=1
+		<if test="yhName != '' and  yhName != null">
+			and yh_name = #{yhName}
+		</if>
+	</select>
+</mapper>
+
+
+
+
+

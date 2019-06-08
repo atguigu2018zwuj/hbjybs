@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RegulationMapper">
+	<select id="getReguList"
+		parameterType="com.mininglamp.currencySys.regulationFile.bean.RegulationBean"
+		resultType="com.mininglamp.currencySys.regulationFile.bean.RegulationBean">
+		SELECT
+		ta.id AS id,
+		ta.REGULATION_TITLE AS regulationTitle,
+		ta.CREATOR AS creator,
+		ta.ORGANIZATION AS organization,
+		ta.CREATE_TIME AS createTime,
+		ta.UPDATE_TIME AS updateTime
+		FROM t_regulation ta
+		where 1=1
+		<if test="regulationTitle != null and regulationTitle != ''">
+			AND ta.REGULATION_TITLE like concat(concat('%',#{regulationTitle}),'%')
+		</if>
+		<if test="creator != null and creator != ''">
+			AND ta.CREATOR like concat(concat('%',#{creator}),'%')
+		</if>
+		<if test="beginDate != null and beginDate != ''">
+			AND ta.create_time &gt;=
+			to_date(#{beginDate},'yyyy-mm-dd')
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND ta.create_time &lt;= to_date(#{endDate},'yyyy-mm-dd')
+		</if>
+		order by ta.create_time
+	</select>
+	
+	<select id="getReguFirstList"
+		parameterType="com.mininglamp.currencySys.regulationFile.bean.RegulationBean"
+		resultType="com.mininglamp.currencySys.regulationFile.bean.RegulationBean">
+		SELECT
+		ta.id AS id,
+		ta.REGULATION_TITLE AS regulationTitle,
+		ta.CREATOR AS creator,
+		ta.ORGANIZATION AS organization,
+		ta.CREATE_TIME AS createTime,
+		ta.UPDATE_TIME AS updateTime
+		FROM t_regulation ta
+		where 1=1
+		<if test="regulationTitle != null and regulationTitle != ''">
+			AND ta.REGULATION_TITLE like concat(concat('%',#{regulationTitle}),'%')
+		</if>
+		<if test="creator != null and creator != ''">
+			AND ta.CREATOR like concat(concat('%',#{creator}),'%')
+		</if>
+		<if test="beginDate != null and beginDate != ''">
+			AND ta.create_time &gt;=
+			to_date(#{beginDate},'yyyy-mm-dd')
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND ta.create_time &lt;= to_date(#{endDate},'yyyy-mm-dd')
+		</if>
+		and rownum &lt; 11 order by ta.create_time desc
+	</select>
+	<select id="selectByPrimaryKey" parameterType="com.mininglamp.currencySys.regulationFile.bean.RegulationBean"
+		resultType="com.mininglamp.currencySys.regulationFile.bean.RegulationBean">
+		SELECT
+		ta.id AS id,
+		ta.REGULATION_TITLE AS regulationTitle,
+		ta.CREATOR AS creator,
+		ta.ORGANIZATION AS organization,
+		ta.CREATE_TIME AS createTime,
+		ta.annex_name AS annexName,
+		ta.annex_url AS annexUrl
+		FROM t_regulation ta
+		where 1=1
+		<if test="id != null">
+		and ta.id=#{id}
+		</if>
+		<if test="regulationTitle != null">
+		and ta.REGULATION_TITLE=#{regulationTitle}
+		</if>
+
+	</select>
+
+	<update id="updateByPrimaryKeySelective" parameterType="map">
+		update t_announcement
+		<set>
+			<if test="announcementTitle != null">
+				announcement_title = #{announcementTitle,jdbcType=VARCHAR},
+			</if>
+			<if test="publishRange != null">
+				publish_range = #{publishRange,jdbcType=VARCHAR},
+			</if>
+			<if test="announcementContent != null">
+				announcement_content = #{announcementContent,jdbcType=VARCHAR},
+			</if>
+			<if test="annexName != null">
+				annex_name = #{annexName,jdbcType=VARCHAR},
+			</if>
+			<if test="annexUrl != null">
+				annex_url = #{annexUrl,jdbcType=VARCHAR},
+			</if>
+			<if test="viewNum != null">
+				view_num = #{viewNum,jdbcType=INTEGER},
+			</if>
+			<if test="createBy != null">
+				create_by = #{createBy,jdbcType=VARCHAR},
+			</if>
+			<if test="updateBy != null">
+				update_by = #{updateBy,jdbcType=VARCHAR},
+			</if>
+			<if test="message != null">
+				message = #{message,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateTime != null">
+				update_time = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+	<delete id="deleteById" parameterType="map">
+		delete from t_regulation t where t.id=#{id}
+	</delete>
+	<update id="updateAnnounce" parameterType="map">
+		UPDATE t_announcement
+		SET view_num = #{viewNum,jdbcType=INTEGER}
+		WHERE 1=1
+		<if test="id != null">
+			and id = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="announcementTitle != null">
+			and announcement_title=#{announcementTitle}
+		</if>
+
+	</update>
+	<select id="selectPublishRange" parameterType="map" resultType="map">
+		<!-- SELECT distinct T.dwbm AS areaCode,
+		T.ssjg AS areaName
+		FROM user_manager T
+		where 1 = 1	and  T.ssjg is not null -->
+		select T.br_no as areaCode,
+		T.jrjgmc AS areaName
+		from hbjyods.jrjgxx T		
+	</select>
+	<select id="selectJgName" parameterType="map" resultType="map">
+		select JRJGBM,JRJGMC,BR_NO,XKZH,ZFHH,TYSHXYDM,JGJB,JGLB,DQDM,YYZT,JGDZ from HBJYODS.JRJGXX t where t.BR_NO=#{publishRange}
+	</select>
+	<select id="selectJgNameById" parameterType="map" resultType="map">
+		select t.JRJGMC AS areaName from t_announcement t where 1=1
+		<if test="id != null">
+			and t.id=#{id}
+		</if>
+		<if test="announcementTitle != null">
+			and t.announcement_title=#{announcementTitle}
+		</if>
+
+	</select>
+
+	<select id="selectBrNoByBrNo" parameterType="map" resultType="map">
+		SELECT
+		T.br_no "id",
+		T.jrjgmc "name",
+		T.jgjb "level",
+		T.sjgljgnbjgh "pId",
+		T.br_no "id"
+		FROM
+		HBJYODS.jrjgxx T
+		where 1=1
+		and T.br_no in (select BR_NO
+		from HBJYODS.jrjgxx h
+		start with h.BR_NO = #{publishRange} connect by
+		h.SJGLJGNBJGH = prior h.BR_NO)
+		and T.jgjb ='2'
+	</select>
+
+	<select id="selectBrNoByBrNoTwo" parameterType="map" resultType="map">
+		SELECT
+		T.br_no "id",
+		T.jrjgmc "name",
+		T.jgjb "level",
+		T.sjgljgnbjgh "pId",
+		T.br_no "id"
+		FROM
+		HBJYODS.jrjgxx T
+		where 1=1
+		and T.br_no in (select BR_NO
+		from HBJYODS.jrjgxx h
+		start with h.BR_NO = #{publishRange} connect by
+		h.SJGLJGNBJGH = prior h.BR_NO)
+		and T.jgjb ='3'
+	</select>
+	<select id="selectBrNoList" parameterType="map" resultType="map">
+	    SELECT
+		T.br_no "id",
+		T.jrjgmc "name",
+		T.jgjb "level",
+		T.sjgljgnbjgh "pId",
+		T.br_no "id"
+		FROM
+		HBJYODS.jrjgxx T
+		where 1=1 
+		<if test="publishRange != null">
+		and  T.BR_NO = #{publishRange}
+		</if>
+		and T.jgjb ='2'
+	</select>
+	
+	<select id="selectLSBrNoList" parameterType="map" resultType="map">
+	    SELECT
+		T.br_no "id",
+		T.jrjgmc "name",
+		T.jgjb "level",
+		T.sjgljgnbjgh "pId",
+		T.br_no "id"
+		FROM
+		HBJYODS.jrjgxx T
+		where 1=1 
+		<if test="publishRange != null">
+		and  T.BR_NO = #{publishRange}
+		</if>
+		and T.jgjb ='3'
+	</select>
+</mapper>

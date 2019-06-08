@@ -1,0 +1,172 @@
+@charset "utf-8";
+.multiAnalysis{
+	background: #eef3f7;font-family: "微软雅黑",Arial,"Microsoft Yahei","宋体";font-size: 14px;height: 100%;/* height: 750px; */width: 100%;
+	padding: 20px 20px 20px 540px;position: relative;
+}
+.multi-loading{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:999}
+.multiAnalysis ul{list-style-type:none;padding: 0;margin: 0;}
+.multiAnalysis .multi-operation-box{
+	float: left;width: 500px;margin-left: -520px;height: 100%;background: #FFFFFF;box-shadow:3px 3px 10px #245269 ;
+	padding: 45px 20px 20px 270px;
+}
+.multiAnalysis .multi-result-box{
+	width: 100%;height: 100%;background: #FFFFFF;box-shadow:3px 3px 10px #245269 ;
+	padding-top: 60px;position: relative;
+}
+
+.multiAnalysis .multi-result-box .multi-toolsbox{
+	position: absolute;top:0px;width: 100%;height: 60px;line-height: 60px;padding-left: 10px;z-index: 99;background: #fff;
+}
+.multiAnalysis .multi-tablebox{
+	width: 100%;height: 100%;overflow: auto;padding: 20px;position: relative;
+}
+.multiAnalysis .multi-toolsbox .multi-button{
+	color: #FFFFFF;float: right;width: 140px;cursor: pointer;border-radius: 5px;padding-left: 30px;height: 40px;line-height: 40px;text-align: center;
+    margin: 20px 20px 0 0;
+}
+.multiAnalysis .multi-toolsbox .multi-btn{
+	display: inline-block;cursor: pointer;width: 25px;height: 25px;margin: 0 10px;vertical-align: middle;;
+}
+.multiAnalysis .multiloadexcel{display: block;}
+.multiAnalysis .multi-toolsbox .multi-btn-js{background: url(../images/multicons-calculation.png) no-repeat; background-size: 100% 100%;}
+.multiAnalysis .multi-toolsbox .multi-btn-charts-bar{background: url(../images/multicons-charts.png) no-repeat; background-size: 100% 100%;}
+.multiAnalysis .multi-toolsbox .multi-btn-charts-line{background: url(../images/multi-lineIcon.png) no-repeat; background-size: 100% 100%;}
+.multiAnalysis .multi-toolsbox .multi-btn-charts-pei{background: url(../images/multi-peiIcon.png) no-repeat; background-size: 100% 100%;}
+.multiAnalysis .multi-toolsbox .multi-btn-change{background: url(../images/multicons-change.png) no-repeat; background-size: 100% 100%;}
+
+.multiAnalysis .multi-loadmodel{
+	background: url(../images/multicons-load.png) no-repeat #0e98f5;
+	background-position: 15px 8px;
+}
+.multiAnalysis .multi-loadmodel:hover{
+	background: url(../images/multicons-load.png) no-repeat #1368c6;
+	background-position: 15px 8px;
+}
+.multiAnalysis .multi-savemodel{
+	background: url(../images/multicons-save.png) no-repeat #0e98f5;
+	background-position: 10px 9px;
+}
+.multiAnalysis .multi-savemodel:hover{
+	background: url(../images/multicons-save.png) no-repeat #1368c6;
+	background-position: 10px 9px;
+}
+.multiAnalysis .multi-treescont{
+	width: 230px;float: left;height: 100%;margin-left: -250px;background: #f0f0f0;
+}
+.multiAnalysis .multi-dragsortarea{
+	width: 100%;height: 100%;
+}
+.multiAnalysis .multi-tit-h4{
+	position: absolute;top:25px;color: #969696;font-size: 16px;
+}
+.multiAnalysis .multi-drag-zoom,.multiAnalysis .multitreebox{
+	height: 100%;position: relative;
+}
+.multiAnalysis .multitreebox{
+	padding:40px 10px 10px 20px;padding-top: 45px;position: relative;
+}
+.multiAnalysis .multisearchbox{position: absolute;top:10px}
+.multiAnalysis .multisearchbox .multi-search{border:1px solid #dfdfdf;padding:0 25px 0 10px;color: #101010;width: 190px;}
+.multiAnalysis .multi-searchbtn{
+	display:block;position: absolute;right: 0px;cursor: pointer;width: 20px;height: 20px;z-index: 99;top:1px;
+	background: url(../images/multisearch_icons.png) no-repeat 100% 100%;background-size: 100%;100%;
+}
+.multiAnalysis #multitree{height: 100%;overflow: auto;margin: 0;padding:0}
+.multiAnalysis #multitree li{outline: none;line-height: 25px;}
+
+.multiAnalysis .multi-conditions{margin: 0;padding: 0;height: 100%;}
+.multiAnalysis .multi-conditions li{
+	width: 100%;height: 25%;position: relative;padding-top: 35px;
+}
+.multiAnalysis .multi-condition-tit{position: absolute;top:10px;color: #2f2f2f;font-weight: bold;padding-left: 15px;}
+.multiAnalysis .multicons-rows{background: url(../images/multicons-rows.png) no-repeat;background-position: 2px;}
+.multiAnalysis .multicons-lie{background: url(../images/multicons-lie.png) no-repeat;background-position: 2px;}
+.multiAnalysis .multicons-value{background: url(../images/multicons-value.png) no-repeat;background-position: 2px;}
+.multiAnalysis .multicons-filters{background: url(../images/multicons-filters.png) no-repeat;background-position: 1px;}
+.multiAnalysis .multi-conditioncont{
+	padding: 10px 40px 10px 20px;height: 100%;background:#f0f0f0 ;color: #666666;overflow-y: auto;overflow-x: hidden;
+	
+}
+
+/*ztree样式重置*/
+.multiAnalysis .ztree li a.curSelectedNode{border: none;background: none;padding-top: 1px;color:#0055AA!important;}
+
+/*拖拽区样式*/
+.multiAnalysis .multi-conditioncont .multi-draggable{
+	display: block;width: 150px!important;height: 25px!important;line-height: 25px; overflow: hidden;
+	text-overflow:ellipsis;white-space: nowrap;
+}
+.multiAnalysis .mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{background-color: rgba(0,0,0,1)!important;}
+
+.multiAnalysis .multifieldremove{display: block;float: left;margin-right: 5px;margin-top: 5px;cursor: pointer;}
+.multifieldremove{display: none;}
+.multiAnalysis .multifieldremove:hover{color: #31B0D5;}
+::-webkit-scrollbar{width: 6px;background-color: #F5F5F5;height: 6px;}
+::-webkit-scrollbar-thumb {background-color:rgba(0,0,0,0.7);border-radius: 5px;}
+::-webkit-scrollbar-track {
+-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);background-color: #F5F5F5;
+border-radius: 5px;
+}
+.multiAnalysis .multi-retract{
+	position: absolute;right: -20px;top:0;height: 100%;width: 20px;cursor: pointer;color: #0E98F5;
+}
+.multiAnalysis .multi-retract .multi-sqbtn{
+    position: absolute;top: 50%; font-size: 18px;margin-top: -20px;
+}
+
+/***工具条**/
+.multi-toolslist li.multi-choses{position: relative;display: inline-block;height: 50px;line-height: 50px;}
+
+/*table样式*/
+.multiAnalysis .multi-table{}
+.multiAnalysis .multi-table-rowstit{position: relative;left:0px;top:0px;}
+.multiAnalysis .multi-table-positionbox{
+	height:99%;position: absolute;left:20px;top:0;z-index: 9;overflow: hidden;
+	padding-top: 80px;
+}
+.multiAnalysis .multi-table-rowstit tr{height: 30px;}
+.multiAnalysis .multi-table-rowstit td,.multiAnalysis .multi-table td{background: #f0f0f0;
+    font-size: 12px;
+    color: #000;
+    border: 1px solid #0A0A0A;
+    height: 30px;
+    padding: 0 5px;
+    overflow: hidden;
+	text-overflow:ellipsis;
+	white-space: nowrap;
+    padding-left: 10px;}
+.multiAnalysis .multi-table td{text-align: center;border: 1px solid #0A0A0A;}
+.multiAnalysis .multi-table .multi-tdboxdiv,.multi-table-rowstit .multi-tdboxdiv{width: 210px;margin: 0 auto;}
+.multiAnalysis .multi-table .multi-tdata{
+	background: #FFFFFF;border: 1px solid #0A0A0A;text-align: right;
+}
+.multiAnalysis .multi-table .multi-excavate,.multiAnalysis .multi-table-rowstit .multi-excavate{
+	margin-right: 5px;;
+}
+
+/*鼠标右键盒子*/
+.multiAnalysis .multiRightMouseBox{
+	position: absolute;border:1px solid #F0F0F0;border-radius: 5px;box-shadow: 5px 5px 5px #111111;padding: 5px 10px 10px 10px;
+	background: #FFFFFF;z-index: 99;max-height: 250px;width: 200px;
+}
+.multiAnalysis .multi-menubox2{
+	position: absolute;border:1px solid #F0F0F0;border-radius: 5px;box-shadow: 5px 5px 5px #111111;padding: 15px 10px 45px 10px;
+	background: #FFFFFF;z-index: 99;max-height: 300px;width: 200px;left: 200px;top:28px;
+}
+.multiAnalysis .multiRightMouseBox h5{border-bottom: 1px solid #000000;padding-bottom: 5px;}
+.multiAnalysis .multiRightMouseBox li,.multiAnalysis .multi-menubox2 li{height: 30px;line-height: 30px;cursor: pointer;}
+.multiAnalysis .multiRightMouseBox li:hover{background: #F0F0F0;}
+.multiAnalysis .multiRightMouseBox li.multi-active{background: #F0F0F0;}
+.multiAnalysis .multi-menubox2 li:hover{background: #F0F0F0;}
+.multiAnalysis .multi-menubox2 li{cursor: pointer;}
+.multiAnalysis .multi-filterbtn-ok{
+	display: inline-block;padding: 5px 15px;border: 1px solid #F0F0F0;cursor: pointer;
+	position: absolute;bottom: 10px;right: 15px;
+}
+.multiAnalysis .multi-filterbtn-ok:hover{background: #F0F0F0;}
+.multiAnalysis .multiRightMouseBox .multi-filters-checkbox{
+	    vertical-align: top;margin:9px 5px 0 5px;
+}
+.multiAnalysis .multiRightMouseBox .multi-filters-radio{
+		vertical-align: top;margin:9px 5px 0 5px;
+}

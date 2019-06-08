@@ -1,0 +1,46 @@
+{
+    "name": "河南雏鹰农牧有限公司",
+    "color":"#18b470",
+    "level":"4",
+    "children": [
+      {
+        "name": "担保关系",
+        "color":"#ebcf3d",
+        "level":"2",
+        "children": [
+            { "color":"#ebcf3d","name": "洛阳生户公司"},
+            { "color":"#ebcf3d","name": "郑州肥力有限公司" }
+        ]
+      }, 
+      {
+        "name": "委托关系",
+        "color":"#58c2d9",
+        "level":"2",
+        "children": [
+            { "color":"#58c2d9","name": "郑州前端产业"},
+            { "color":"#58c2d9","name": "郑州企查宝数据有限公司" }
+
+         ]
+      }, 
+      {
+        "name": "子母公司",
+        "color":"#3dccc0",
+        "level":"3",
+        "children": [
+            { "color":"#3dccc0","name": "深圳市南山区秋元玉汇百货店" },
+            { "color":"#3dccc0","name": "郑州景典文化有限公司" },
+            { "color":"#3dccc0","name": "洛阳美好景象图片有限公司" }
+         ]
+      }, 
+      {
+        "name": "法人",
+        "color":"#7f95e6",
+        "level":"3",
+        "children": [
+            { "color":"#7f95e6","name": "郑州前瞻信息技术科技有限公司" },
+            { "color":"#7f95e6","name": "郑州创客科技有限合伙企业（有限合伙）" },
+            { "color":"#7f95e6","name": "郑州博隆投资合伙企业（有限合伙）" }
+         ]
+      }
+    ]
+}

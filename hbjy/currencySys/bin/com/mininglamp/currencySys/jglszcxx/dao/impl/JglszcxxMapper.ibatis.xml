@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JglszcxxMapper">
+
+	<!-- 获取轮到这一次支出的机构(type:[dx:发送短信;]) -->
+	<select id="getThisTurnJgOfZcByNbjgh" parameterType="map" resultType="map">
+		SELECT * FROM (
+			SELECT
+			  A.*,
+			  ROWNUM RN
+			FROM (
+				SELECT
+					T.br_no "id",
+					T.jrjgmc "jrjgmc",
+					T.jrjgbm "jrjgbm",
+					T.jgjb "jgjb",
+					T.sjgljgnbjgh "pId",
+					jzc.dxzcsj "dxzcsj"
+				FROM HBJYODS.jrjgxx T
+				left join jglszcxx jzc on jzc.jrjgbm = T.jrjgbm and jzc.nbjgh = T.br_no
+				where
+					T.br_no in (select BR_NO from HBJYODS.jrjgxx h
+					start with h.BR_NO = #{nbjgh} connect by h.SJGLJGNBJGH = prior h.BR_NO)
+					and T.jgjb ='3'
+					<if test="type != null and never != null">
+						and 
+							<choose>
+								<!-- 短信支出时间 -->
+								<when test="type == 'dx'">jzc.dxzcsj</when>
+							</choose>
+							<choose>
+								<when test="never == 'true'">is null</when>
+								<when test="never == 'false'">is not null</when>
+							</choose>
+					</if>
+				<if test="orderFieldJzc != null and orderFieldJzc != ''">
+					order by jzc.${orderFieldJzc}
+				</if>
+			) A
+		)  
+		WHERE RN = 1
+	</select>
+
+	<!-- 新增机构的最后一次出钱发短信的时间(type:[dx:发送短信;]) -->
+	<insert id="insertJglszcxx" parameterType="Map">
+		insert into jglszcxx (
+			<if test="type != null and type == 'dx'">
+				DXZCSJ,
+			</if>
+			JRJGBM,
+			NBJGH
+		) values (
+			<if test="type != null and type == 'dx'">
+				sysdate,
+			</if>
+			#{jrjgbm},
+			#{nbjgh}
+		)
+	</insert>
+	
+	<!-- 更新机构的最后一次出钱发短信的时间(type:[dx:发送短信;]) -->
+	<update id="updateJglszcxxTimeToNowByNbjgh" parameterType="Map">
+		update jglszcxx t
+		<set>
+			<if test="type != null and type == 'dx'">
+				t.DXZCSJ = sysdate,
+			</if>
+		</set>
+		where t.NBJGH = #{nbjgh}
+	</update>
+
+</mapper>
+
+
+
+
+

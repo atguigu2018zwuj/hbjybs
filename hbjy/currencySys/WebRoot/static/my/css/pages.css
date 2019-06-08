@@ -1,0 +1,518 @@
+@charset "utf-8";
+/*登录页面 start*/
+	.container {
+            width: 100%;
+            height: 100%;
+            background: url("../images/bg.jpg") no-repeat 100% 100%;
+            background-size: 100% 100%;
+            position: relative;
+        }
+    .logo {
+    	position: absolute;
+        top: 0.65rem;
+        left: 0.94rem;
+        z-index: 3;
+        width: 4.12rem;
+		height: 0.64rem;
+        background: url("../images/logo.png") no-repeat;
+        background-size: contain;
+        overflow: hidden;
+        text-indent: -100rem;
+    }
+    .building{
+    	position: absolute;
+    	top: 24.14%;
+        left: 8.85%;
+		z-index: 1;
+		width: 13.25rem;
+		height: 8.61rem;
+		background: url("../images/building.png") no-repeat;
+		background-size: contain;
+    }
+    .login-wrapper {
+        position: absolute;
+        z-index: 2;
+        top: 24.14%;
+        right: 8.85%;
+        width: 6.13rem;
+        height: 6.2rem;
+        background: url("../images/login-bg.png") no-repeat;
+        background-size: 100% 100%;
+    }
+    .login-wrapper .login-container {
+        padding: 0 0.65rem;
+    }
+    .login-wrapper header {
+        width: 100%;
+        margin: 0.9rem 0 0.8rem 0;
+        font-size: 0.28rem;
+        text-align: center;
+        color: #fff;
+    }
+
+    .login-wrapper .input-wrapper {
+    	position: relative;
+        width: 100%;
+        height: 0.5rem;
+        margin-bottom: 0.3rem;
+        background: #042150;
+        overflow: hidden;
+    }
+    .login-wrapper .input-wrapper .del{
+    	position: absolute;
+    	right:0.1rem;
+    	top:0.1rem;
+    	width:0.17rem ;
+    	height: 0.26rem;
+        background: url("../images/delete-icon.png") no-repeat;
+	    background-size: 0.17rem 0.26rem;
+    } 
+    .login-wrapper .input-wrapper.userName input{
+    	background: url("../images/user-icon.png") no-repeat;
+    	background-position: 0.1rem 0.1rem;
+	    background-size: 0.2rem 0.26rem;
+    }
+    .login-wrapper .input-wrapper.password input{
+    	background: url("../images/password.png") no-repeat;
+    	background-position: 0.1rem 0.1rem;
+	    background-size: 0.18rem 0.24rem;
+    }
+    .login-wrapper input {
+        padding-left: 0.5rem;
+        width: calc(100% - 0.5rem);
+        height: 100%;
+        font-size: 0.17rem;
+        border: 0;
+        background: #042150;
+        color: #50a1fe;
+        outline: none;
+        float: left;
+    }
+    .login-wrapper input::-webkit-input-placeholder{
+        color: #50a1fe;
+    }
+    .login-wrapper input::-moz-placeholder{
+        color: #50a1fe;
+    }
+    .login-wrapper input:-moz-placeholder{
+        color: #50a1fe;
+    }
+    .login-wrapper input:-ms-input-placeholder{
+        color: #50a1fe;
+    }
+
+    .login-wrapper .error-message {
+    	height: 0.4rem;
+    	line-height: 0.4rem;
+        margin-bottom: 0.4rem;
+        color: #fff;
+        font-size: 0.17rem;
+        background: url("../images/error-icon.png") no-repeat;
+    	background-position: 0 0.1rem;
+	    background-size: 0.23rem 0.21rem;
+	    text-indent: 0.3rem;
+    }
+
+
+    .login-wrapper button {
+        width: 100%;
+        height: 0.5rem;
+        line-height: 0.5rem;
+        font-size: 0.21rem;
+        background: #017cd3;
+        border: 0;
+        outline: none;
+        border-radius: 0.05rem;
+        color: #fff;
+        float: left;
+    }
+/*登录页面 end*/
+/*采集系统首页 start*/
+    /*content*/
+    .acquisitionSystem .bottom .contentBox{
+        /* width: calc(100% - 2.67rem); */
+        width: 100%;
+        height: 150%;
+        overflow: hidden;
+        top:150px;
+    }
+    .acquisitionSystem .bottom .content{
+        margin: 0.3rem;
+        width: 60%;
+    }
+    .acquisitionSystem .bottom .content .title{
+        height: 0.61rem;
+        line-height: 0.61rem;
+        padding: 0 0.2rem;
+        background-color: #d8e7ff;
+        border-bottom: 1px solid #95b4da;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        margin-bottom: 0.15rem;
+    }
+    .acquisitionSystem .content .title .left{
+        font-size: 0.2rem;
+        font-weight: bold;
+        color: rgb(0, 92, 199);
+    }
+    .acquisitionSystem .content .title .leftIcon{
+        width: 0.29rem;
+        height: 0.29rem;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 0.1rem;
+    }
+    .acquisitionSystem .content .title .rightIcon{
+        width: 0.08rem;
+        height: 0.11rem;
+        display: inline-block;
+        background: url("../images/more.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .content .notice{
+        margin-bottom: 0.3rem;
+    }
+    .acquisitionSystem .content .notice .leftIcon{
+        background: url("../images/notice.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .content .documents .leftIcon{
+        background: url("../images/documents.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .content .title .right{
+        font-size: 0.16rem;
+        color: rgb(0, 64, 139);
+    }
+    .acquisitionSystem .content .notice ul{
+        height: 3.64rem;
+        overflow-y: auto;
+    }
+    .acquisitionSystem .content .documents ul{
+        height: 3.04rem;
+        overflow-y: auto;
+    }
+    .acquisitionSystem .content ul li{
+        font-size: 0.14rem;
+        padding-left: 0.2rem;
+        height: 0.35rem;
+        line-height: 0.35rem;
+    }
+    .acquisitionSystem .content ul li:hover{
+        background-color: #e9f3ff;
+        color: rgb(0, 113, 255);
+    }
+    .acquisitionSystem .content ul li .newsTitle{
+        width: calc(100% - 1.5rem);
+        white-space: nowrap;
+    }
+    .acquisitionSystem .content ul li .fgTitle{
+        width: calc(100% - 1.5rem);
+        white-space: nowrap;
+    }
+    .acquisitionSystem .content ul li .newsTime{
+        color: rgb(102, 102, 102);
+        width: 1.5rem;
+        white-space: nowrap;
+    }
+    .acquisitionSystem .content ul li a,
+    .acquisitionSystem .content ul li a:link{
+    	color: #00408b;
+    }
+    .acquisitionSystem .content ul li a:visited{
+    	color: #959d9e;
+    }
+    .acquisitionSystem .content ul li a:hover{
+    	color: rgb(0, 113, 255);
+    }
+    /*content*/
+    /*todoBox*/
+    .acquisitionSystem .bottom .todoBox{
+        width: 34%;
+        height: 100%;
+        margin: 5rem 0.3rem 0 0;
+    }
+    .acquisitionSystem .bottom .todoBox .todoTitle{
+        font-size: 0.2rem;
+        color: #fff;
+        height: 0.6rem;
+        line-height: 0.6rem;
+        font-weight: bold;
+        background-color: #50a1fe;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        padding-left: 0.2rem;
+    }
+    .acquisitionSystem .todoBox .todoTitle .todoIcon{
+        margin-right: 0.1rem;
+    }
+    .acquisitionSystem .bottom .todoBox .todoIcon{
+        width: 0.28rem;
+        height: 0.28rem;
+        vertical-align: middle;
+        display: inline-block;
+        background: url("../images/todoIcon.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .bottom .todoContent{
+        height: 2.98rem;
+        border: 2px solid #000;
+        border-top: none;
+        font-size: 0.14rem;
+        overflow-y: auto;
+        border-image: -webkit-linear-gradient( #55a3fe, #b9d4ff) 30 30;
+        border-image: -moz-linear-gradient( #55a3fe, #b9d4ff) 30 30;
+        border-image: linear-gradient( #55a3fe, #b9d4ff) 30 30;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    .acquisitionSystem .bottom .todoContent li{
+        padding: 0.26rem;
+        cursor: pointer;
+    }
+    
+    .acquisitionSystem .bottom .todoContent li:hover{
+        background-color: #f4f9ff;
+    }
+    .acquisitionSystem .bottom .todoContent .todoTime{
+        margin-bottom: 0.1rem;
+        font-size: 0.14rem;
+    }
+    .acquisitionSystem .bottom .todoThing{
+        color: #008aff;
+    }
+    
+    /*todoBox*/
+    /* 媒体查询start */
+	@media screen and (min-width:1280px) and (max-width:1360px) {
+		.acquisitionSystem .bottom .todoContent li{
+	        padding: 0.3rem;
+	    }
+	}
+	@media screen and (min-width:1361px) and (max-width:1919px) {
+		.acquisitionSystem .bottom .todoBox{
+	            width: 32%;
+	    }
+	}
+	
+    /* 媒体查询end */
+/*采集系统首页 end*/
+/*采集系统首页更多页面 start*/
+.acquisitionSystem .bottom .contentBox .moreContent{
+    padding: 0.3rem;
+    font-size: 0.14rem;
+}
+.acquisitionSystem .bottom .contentBox .searchTop{
+    overflow: hidden;
+    margin-bottom: 0.2rem;
+}
+.acquisitionSystem .bottom .contentBox .searchTop .searchCon span{
+    display: inline-block;
+    line-height: 0.3rem;
+    height: 0.3rem;
+    vertical-align: top;
+}
+.acquisitionSystem .bottom .searchBox input{
+    height: 0.3rem;
+    padding-left: 0.1rem;
+    border: 1px solid #ccc;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+.datetimepicker{
+    font-size: 0.12rem;
+}
+.acquisitionSystem .bottom .input-append .add-on{
+    height: 0.3rem;
+    line-height: 0.3rem;
+}
+.acquisitionSystem .bottom .input-append .add-on .icon-remove{
+	margin-top: -0.03rem;
+}
+.acquisitionSystem .contentBox .searchCon .inlineBlock{
+    display: inline-block;
+    vertical-align: middle;
+}
+.acquisitionSystem .bottom .searchBox .interval{
+    height: 0.3rem;
+    width: 0.08rem;
+    display: inline-block;
+    vertical-align: middle;
+}
+.acquisitionSystem .bottom .contentBox .titleInput{
+    vertical-align: text-bottom;
+}
+.acquisitionSystem .bottom .contentBox input.searchTitle{
+    width: 6rem;
+}
+.acquisitionSystem .bottom .contentBox .dateLable{
+    margin-left: 0.5rem;
+    vertical-align: baseline;
+}
+.acquisitionSystem .bottom .contentBox .searchBtn{
+    width: 1rem;
+    height: 0.3rem;
+    line-height: 0.3rem;
+    text-align: center;
+    background: #017cd3;
+    color: #fff;
+    font-size: 0.16rem;
+    outline: none;
+    border: none;
+    border-radius: 4px;
+}
+.acquisitionSystem .bottom .searchBottom label{
+	font-size: 0.14rem;
+}
+.acquisitionSystem .bottom .searchBottom input{
+    vertical-align: middle;
+    margin-top: 0;
+}
+.acquisitionSystem .bottom .searchBottom .readState{
+    vertical-align: middle;
+}
+.acquisitionSystem .bottom .searchBottom label{
+    display: inline-block;
+    vertical-align: text-top;
+}
+.acquisitionSystem .bottom .contentBox input.unfinished{
+    margin-left: 0.2rem;
+}
+/* 媒体查询start */
+@media screen and (min-width:1280px) and (max-width:1919px) {
+    .acquisitionSystem .bottom .contentBox input.searchTitle {
+        width: 3rem;
+    }
+}
+/* 媒体查询end */
+/*表格*/
+.acquisitionSystem .bottom .tableBox{
+    margin-top: 0.2rem;
+}
+.acquisitionSystem .bottom .tableBox .reference{
+    border-collapse: collapse;
+    width: 100%;
+}
+.acquisitionSystem .tableBox .reference tr:nth-child(odd) {
+    background-color: #f6f4f0;
+}
+.acquisitionSystem .tableBox .reference tr:nth-child(even) {
+    background-color: #fff;
+}
+.acquisitionSystem .tableBox .reference th {
+    color: #fff;
+    background: -webkit-linear-gradient( 90deg, rgb(7,100,216) 0%, rgb(4,158,255) 100%);
+    font-size: 0.16rem;
+    text-align: center;
+    padding: 0.03rem;
+    vertical-align: top;
+}
+.acquisitionSystem .tableBox .reference tr:nth-child(1) th {
+    padding: 0.1rem 0;
+}
+.acquisitionSystem .tableBox .reference tr:hover{
+    background-color: #6daef8;
+    color: #fff;
+}
+.acquisitionSystem .tableBox .reference td {
+    min-width: 0.24rem;
+    border: 1px solid #d4d4d4;
+    border-top: none;
+    border-bottom: none;
+    font-size: 0.14rem;
+    padding: 0.1rem 0.05rem;
+    vertical-align: top;
+    text-align: center;
+}
+.acquisitionSystem .tableBox .reference .alignLeft{
+    text-align: left;
+    padding-left: 0.1rem;
+}
+.acquisitionSystem .tableBox .reference .alignLeft a{
+    width: 100%;
+    height:100%;
+    display: block;
+}
+/*表格*/
+/*分页*/
+.acquisitionSystem .page input{
+    height: 0.28rem !important;
+    margin-bottom: 0.02rem;
+    margin-top: 0 !important;
+}
+/* 媒体查询start */
+@media screen and (min-width:1280px) and (max-width:1360px) {
+   .acquisitionSystem .page input{
+        height: 0.38rem !important;
+    }
+}
+@media screen and (min-width:1361px) and (max-width:1919px) {
+    .acquisitionSystem .page input{
+        height: 0.31rem !important;
+    }
+}
+
+/* 媒体查询end */
+/*分页*/
+/*采集系统首页更多页面 end*/
+/*编辑页面 start*/
+	#noticesAdd{
+			width:800px;
+			margin:0 auto;
+		}
+		
+	#noticesAdd form{
+		width: 100%;
+	}
+	#noticesAdd form .item{
+		min-height:30px;
+		padding-left:100px;
+		margin-bottom: 10px;
+	}
+	#noticesAdd form .item input[type= text]{
+		height:20px;
+		padding:5px;
+		width:200px;
+	}
+	#noticesAdd form .item>select{
+		height:30px;
+		width:105px;
+		
+	}
+	#noticesAdd form .item>label{
+		height:20px;
+		display:inline-block;
+		padding:5px;
+	}
+	#noticesAdd form .item>span{
+		float:left;
+		width:100px;
+		min-height:30px;
+		line-height:30px;
+		margin-left: -100px;
+	}
+	#noticesAdd form .upload{
+		background: #00b8ff;
+		width:100px;
+		height:30px;
+		line-height:30px;
+		text-align:center;
+		color:#fff;
+		border:none;
+		cursor:pointer;
+	}
+	#noticesAdd form .operate{
+		width:100%;
+		text-align:right;
+	}
+	#noticesAdd form .operate>button{
+		background: #00b8ff;
+		width:100px;
+		height:40px;
+		line-height:40px;
+		text-align:center;
+		color:#fff;
+		border:none;
+		cursor:pointer;
+	}
+/*编辑页面 end*/

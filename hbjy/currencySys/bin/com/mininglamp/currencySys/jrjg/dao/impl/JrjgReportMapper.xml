@@ -1,0 +1,2602 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JrjgReportMapper">
+
+	<!-- syyh_sydw 开始 -->
+	<!-- 查询 -->
+	<select id="getSydwData" resultType="Map" parameterType="Map">
+		SELECT 
+		  to_char(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		  T.JRJGBM,
+		  T.NBJGH,
+		  T.JRJGFW,
+		  T.YBFL,
+		  T.BGQ_QSYDW,
+		  T.SBLX
+		FROM 
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.jrjgfw,t.ybfl,t.bgq_qsydw,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,jrjgfw,ybfl,bgq_qsydw,sblx from SYYH_SYDW <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlSydwData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_SYDW T where 1=1 <include refid="sqlSydwData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getSydwDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_SYDW t
+		where 1=1
+		<include refid="sqlSydwData"></include>
+	</select>
+	
+	<sql id="sqlSydwData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%' 
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%' 
+		</if>
+		<if test="JRJGFW != null and JRJGFW != ''">
+			and t.JRJGFW = #{JRJGFW,jdbcType=VARCHAR } 
+		</if>
+		<if test="YBFL != null and YBFL != ''">
+			and t.YBFL = #{YBFL,jdbcType=VARCHAR } 
+		</if>
+		<if test="BGQ_QSYDW != null and BGQ_QSYDW != ''">
+			and t.BGQ_QSYDW like '%${BGQ_QSYDW}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR } 
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="sydwUpdateData" parameterType="Map">
+		update SYYH_SYDW t set 
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="JRJGFW != null and JRJGFW != ''">
+			t.JRJGFW = #{JRJGFW,jdbcType=VARCHAR },
+		</if>
+		<if test="YBFL != null and YBFL != ''">
+			t.YBFL = #{YBFL,jdbcType=VARCHAR },
+		</if>
+		<if test="BGQ_QSYDW != null and BGQ_QSYDW != ''">
+			t.BGQ_QSYDW = #{BGQ_QSYDW,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where 
+		<foreach collection="last_row" item="item" index="index" separator=" "> 
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.JRJGFW = #{item.JRJGFW,jdbcType=VARCHAR } and
+			t.YBFL = #{item.YBFL,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	<!--批量删除  -->
+	<delete id="sydwDeleteData" parameterType="Map" >
+		delete from SYYH_SYDW t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index" separator=" "> 
+				or (t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.JRJGFW = #{item.JRJGFW,jdbcType=VARCHAR } and
+					t.YBFL = #{item.YBFL,jdbcType=VARCHAR })
+			</foreach>
+		</if>
+	</delete>
+	<!-- SYYH_SYDW 结束-->
+	
+	
+	<!-- SYYH_WDSL 开始 -->
+	<!-- 查询 -->
+	<select id="getWdslData" resultType="Map" parameterType="Map">
+		SELECT 
+	      TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+	      T.JRJGBM,
+	      T.NBJGH,
+	      T.JRJGFW,
+	      T.BGQ_JRJGWD,
+	      T.SBLX
+	    FROM 
+	    <choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.jrjgfw,t.bgq_jrjgwd,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,jrjgfw,bgq_jrjgwd,sblx from SYYH_WDSL <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlWdslData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_WDSL T where 1=1 <include refid="sqlWdslData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getWdslDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_WDSL t
+		where 1=1
+		<include refid="sqlWdslData"></include>
+	</select>
+	
+	<sql id="sqlWdslData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%' 
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%' 
+		</if>
+		<if test="JRJGFW != null and JRJGFW != ''">
+			and t.JRJGFW = #{JRJGFW,jdbcType=VARCHAR } 
+		</if>
+		<if test="BGQ_JRJGWD != null and BGQ_JRJGWD != ''">
+			and t.BGQ_JRJGWD like '%${BGQ_JRJGWD}%' 
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="wdslUpdateData" parameterType="Map">
+		update SYYH_WDSL t set 
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="JRJGFW != null and JRJGFW != ''">
+			t.JRJGFW = #{JRJGFW,jdbcType=VARCHAR },
+		</if>
+		<if test="BGQ_JRJGWD != null and BGQ_JRJGWD != ''">
+			t.BGQ_JRJGWD = #{BGQ_JRJGWD,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where 
+		<foreach collection="last_row" item="item" index="index" separator=" "> 
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.JRJGFW = #{item.JRJGFW,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	<!--批量删除  -->
+	<delete id="wdslDeleteData" parameterType="Map" >
+		delete from SYYH_WDSL t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index" separator=" "> 
+				or (t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.JRJGFW = #{item.JRJGFW,jdbcType=VARCHAR })
+			</foreach>
+		</if>
+	</delete>
+	<!-- SYYH_WDSL 结束-->
+	
+	<!-- SYYH_WSSL 开始 -->
+	<!-- 查询 -->
+	<select id="getWsslData" resultType="Map" parameterType="Map">
+		SELECT
+		to_char(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.QXYH_YYWD,
+		T.CYYH_YYWD,
+		T.QXYH_CYBL,
+		T.QXYH_ZZJJ,
+		T.CYYH_ZZJJ,
+		T.QXYH_ZZCYBL,
+		T.QXYH_QFSB,
+		T.QFZX_QFSB,
+		T.YHWD_QFSB,
+		T.SBLX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.qxyh_yywd,t.cyyh_yywd,t.qxyh_cybl,t.qxyh_zzjj,t.cyyh_zzjj,t.qxyh_zzcybl,t.qxyh_qfsb,t.qfzx_qfsb,t.yhwd_qfsb,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,qxyh_yywd,cyyh_yywd,qxyh_cybl,qxyh_zzjj,cyyh_zzjj,qxyh_zzcybl,qxyh_qfsb,qfzx_qfsb,yhwd_qfsb,sblx from SYYH_WSSL <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlWsslData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_WSSL T where 1=1 <include refid="sqlWsslData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getWsslDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_WSSL t
+		where 1=1
+		<include refid="sqlWsslData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlWsslData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="QXYH_YYWD != null and QXYH_YYWD != ''">
+			and t.QXYH_YYWD like '%${QXYH_YYWD}%'
+		</if>
+		<if test="CYYH_YYWD != null and CYYH_YYWD != ''">
+			and t.CYYH_YYWD like '%${CYYH_YYWD}%'
+		</if>
+		<if test="QXYH_CYBL != null and QXYH_CYBL != ''">
+			and t.QXYH_CYBL like '%${QXYH_CYBL}%'
+		</if>
+		
+		<if test="QXYH_ZZJJ != null and QXYH_ZZJJ != ''">
+			and t.QXYH_ZZJJ like '%${QXYH_ZZJJ}%'
+		</if>
+		<if test="CYYH_ZZJJ != null and CYYH_ZZJJ != ''">
+			and t.CYYH_ZZJJ like '%${CYYH_ZZJJ}%'
+		</if>
+		<if test="QXYH_ZZCYBL != null and QXYH_ZZCYBL != ''">
+			and t.QXYH_ZZCYBL like '%${QXYH_ZZCYBL}%'
+		</if>
+		<if test="QXYH_QFSB != null and QXYH_QFSB != ''">
+			and t.QXYH_QFSB like '%${QXYH_QFSB}%'
+		</if>
+		<if test="QFZX_QFSB != null and QFZX_QFSB != ''">
+			and t.QFZX_QFSB like '%${QFZX_QFSB}%'
+		</if>
+		<if test="YHWD_QFSB != null and YHWD_QFSB != ''">
+			and t.YHWD_QFSB like '%${YHWD_QFSB}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="wsslUpdateData" parameterType="Map">
+		update SYYH_WSSL t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="QXYH_YYWD != null and QXYH_YYWD != ''">
+			t.QXYH_YYWD = #{QXYH_YYWD,jdbcType=VARCHAR },
+		</if>
+		<if test="CYYH_YYWD != null and CYYH_YYWD != ''">
+			t.CYYH_YYWD = #{CYYH_YYWD,jdbcType=VARCHAR },
+		</if>
+		<if test="QXYH_CYBL != null and QXYH_CYBL != ''">
+			t.QXYH_CYBL = #{QXYH_CYBL,jdbcType=VARCHAR },
+		</if>
+		t.QXYH_ZZJJ = #{QXYH_ZZJJ,jdbcType=VARCHAR},
+		t.CYYH_ZZJJ = #{CYYH_ZZJJ,jdbcType=VARCHAR },
+		<if test="QXYH_ZZCYBL != null and QXYH_ZZCYBL != ''">
+			t.QXYH_ZZCYBL = #{QXYH_ZZCYBL,jdbcType=VARCHAR },
+		</if>
+		t.QXYH_QFSB = #{QXYH_QFSB,jdbcType=VARCHAR },
+		t.QFZX_QFSB = #{QFZX_QFSB,jdbcType=VARCHAR },
+		t.YHWD_QFSB = #{YHWD_QFSB,jdbcType=VARCHAR },
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE},'YYYY-MM-DD')
+			and t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR}
+			and t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+
+	<!--批量删除 -->
+	<delete id="wsslDeleteData" parameterType="Map">
+		delete from SYYH_WSSL t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or(
+					t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE},'YYYY-MM-DD')
+					and t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR}
+					and t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR}
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!-- SYYH_WSSL 结束 -->
+	
+	
+	<!-- SYYH_XQMY 开始 -->
+	<!-- 查询 -->
+	<select id="getXqmyData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.KCJB,
+		T.QB,
+		T.YF,
+		T.JQ,
+		T.YB,
+		T.CF,
+		T.SBLX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.kcjb,t.qb,t.yf,t.jq,t.yb,t.cf,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,kcjb,qb,yf,jq,yb,cf,sblx from SYYH_XQMY <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlXqmyData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_XQMY T where 1=1 <include refid="sqlXqmyData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getXqmyDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_XQMY t
+		where 1=1
+		<include refid="sqlXqmyData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlXqmyData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="KCJB != null and KCJB != ''">
+			and t.KCJB = #{KCJB,jdbcType=VARCHAR }
+		</if>
+		<if test="QB != null and QB != ''">
+			and t.QB = #{QB,jdbcType=VARCHAR }
+		</if>
+		<if test="YF != null and YF != ''">
+			and t.YF like '%${YF}%'
+		</if>
+		<if test="JQ != null and JQ != ''">
+			and t.JQ like '%${JQ}%'
+		</if>
+		<if test="YB != null and YB != ''">
+			and t.YB like '%${YB}%'
+		</if>
+		<if test="CF != null and CF != ''">
+			and t.CF like '%${CF}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="xqmyUpdateData" parameterType="Map">
+		update SYYH_XQMY t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="KCJB != null and KCJB != ''">
+			t.KCJB = #{KCJB,jdbcType=VARCHAR },
+		</if>
+		<if test="QB != null and QB != ''">
+			t.QB = #{QB,jdbcType=VARCHAR },
+		</if>
+		<if test="YF != null and YF != ''">
+			t.YF = #{YF,jdbcType=VARCHAR },
+		</if>
+		<if test="JQ != null and JQ != ''">
+			t.JQ = #{JQ,jdbcType=VARCHAR},
+		</if>
+		<if test="YB != null and YB != ''">
+			t.YB = #{YB,jdbcType=VARCHAR },
+		</if>
+		<if test="CF != null and CF != ''">
+			t.CF = #{CF,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.KCJB = #{item.KCJB,jdbcType=VARCHAR } and
+			t.QB = #{item.QB,jdbcType=VARCHAR } and
+			t.YF = #{item.YF,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+
+	<!--批量删除 -->
+	<delete id="xqmyDeleteData" parameterType="Map">
+		delete from SYYH_XQMY t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.KCJB = #{item.KCJB,jdbcType=VARCHAR } and
+					t.QB = #{item.QB,jdbcType=VARCHAR } and
+					t.YF = #{item.YF,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!-- SYYH_XQMY 结束 -->
+	
+	<!-- SYYH_BZJD 开始 -->
+	
+	<!-- 查询 -->
+	<select id="getBzjdData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.DYLX,
+		T.QB,
+		T.QSYDW_YLT_H,
+		T.QSYDW_YLT_JH,
+		T.QSYDW_BYLT_C,
+		T.QSYDW_BYLT_JC,
+		T.JRJG_YLT_H,
+		T.JRJG_YLT_JH,
+		T.JRJG_BYLT_C,
+		T.JRJG_BYLT_JC,
+		T.SBLX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.dylx,t.qb,t.qsydw_ylt_h,t.qsydw_ylt_jh,t.qsydw_bylt_c,t.qsydw_bylt_jc,t.jrjg_ylt_h,t.jrjg_ylt_jh,t.jrjg_bylt_c,t.jrjg_bylt_jc,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,dylx,qb,qsydw_ylt_h,qsydw_ylt_jh,qsydw_bylt_c,qsydw_bylt_jc,jrjg_ylt_h,jrjg_ylt_jh,jrjg_bylt_c,jrjg_bylt_jc,sblx from SYYH_BZJD <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlBzjdData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_BZJD T where 1=1 <include refid="sqlBzjdData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getBzjdDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_BZJD t
+		where 1=1
+		<include refid="sqlBzjdData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlBzjdData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="DYLX != null and DYLX != ''">
+			and t.DYLX = #{DYLX,jdbcType=VARCHAR }
+		</if>
+		<if test="QB != null and QB != ''">
+			and t.QB = #{QB,jdbcType=VARCHAR }
+		</if>
+		<if test="QSYDW_YLT_H != null and QSYDW_YLT_H != ''">
+			and t.QSYDW_YLT_H like '%${QSYDW_YLT_H}%'
+		</if>
+		<if test="QSYDW_YLT_JH != null and QSYDW_YLT_JH != ''">
+			and t.QSYDW_YLT_JH like '%${QSYDW_YLT_JH}%'
+		</if>
+		<if test="QSYDW_BYLT_C != null and QSYDW_BYLT_C != ''">
+			and t.QSYDW_BYLT_C like '%${QSYDW_BYLT_C}%'
+		</if>
+		<if test="QSYDW_BYLT_JC != null and QSYDW_BYLT_JC != ''">
+			and t.QSYDW_BYLT_JC like '%${QSYDW_BYLT_JC}%'
+		</if>
+		<if test="JRJG_YLT_H != null and JRJG_YLT_H != ''">
+			and t.JRJG_YLT_H like '%${JRJG_YLT_H}%'
+		</if>
+		<if test="JRJG_YLT_JH != null and JRJG_YLT_JH != ''">
+			and t.JRJG_YLT_JH like '%${JRJG_YLT_JH}%'
+		</if>
+		<if test="JRJG_BYLT_C != null and JRJG_BYLT_C != ''">
+			and t.JRJG_BYLT_C like '%${JRJG_BYLT_C}%'
+		</if>
+		<if test="JRJG_BYLT_JC != null and JRJG_BYLT_JC != ''">
+			and t.JRJG_BYLT_JC like '%${JRJG_BYLT_JC}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="bzjdUpdateData" parameterType="Map">
+		update SYYH_BZJD t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="DYLX != null and DYLX != ''">
+			t.DYLX = #{DYLX,jdbcType=VARCHAR },
+		</if>
+		<if test="QB != null and QB != ''">
+			t.QB = #{QB,jdbcType=VARCHAR },
+		</if>
+		<if test="QSYDW_YLT_H != null and QSYDW_YLT_H != ''">
+			t.QSYDW_YLT_H = #{QSYDW_YLT_H,jdbcType=VARCHAR },
+		</if>
+		<if test="QSYDW_YLT_JH != null and QSYDW_YLT_JH != ''">
+			t.QSYDW_YLT_JH = #{QSYDW_YLT_JH,jdbcType=VARCHAR},
+		</if>
+		<if test="QSYDW_BYLT_C != null and QSYDW_BYLT_C != ''">
+			t.QSYDW_BYLT_C = #{QSYDW_BYLT_C,jdbcType=VARCHAR },
+		</if>
+		<if test="QSYDW_BYLT_JC != null and QSYDW_BYLT_JC != ''">
+			t.QSYDW_BYLT_JC = #{QSYDW_BYLT_JC,jdbcType=VARCHAR },
+		</if>
+		<if test="JRJG_YLT_H != null and JRJG_YLT_H != ''">
+			t.JRJG_YLT_H = #{JRJG_YLT_H,jdbcType=VARCHAR },
+		</if>
+		<if test="JRJG_YLT_JH != null and JRJG_YLT_JH != ''">
+			t.JRJG_YLT_JH = #{JRJG_YLT_JH,jdbcType=VARCHAR},
+		</if>
+		<if test="JRJG_BYLT_C != null and JRJG_BYLT_C != ''">
+			t.JRJG_BYLT_C = #{JRJG_BYLT_C,jdbcType=VARCHAR },
+		</if>
+		<if test="JRJG_BYLT_JC != null and JRJG_BYLT_JC != ''">
+			t.JRJG_BYLT_JC = #{JRJG_BYLT_JC,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.DYLX = #{item.DYLX,jdbcType=VARCHAR } and
+			t.QB = #{item.QB,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+
+	<!--批量删除 -->
+	<delete id="bzjdDeleteData" parameterType="Map">
+		delete from SYYH_BZJD t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.DYLX = #{item.DYLX,jdbcType=VARCHAR } and
+					t.QB = #{item.QB,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	
+	<!-- SYYH_BZJD 结束-->
+	
+	
+	<!-- SYYH_SZLX 开始 -->
+	
+	<!-- 查询 -->
+	<select id="getSzlxData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.KCJB,
+		T.QB,
+		T.KMXJSR_JG,
+		T.KMXJSR_SY,
+		T.KMXJSR_QY_D,
+		T.KMXJSR_QY_Z,
+		T.KMXJSR_QY_X,
+		T.KMXJSR_GTGSH,
+		T.KMXJSR_JM,
+		T.KMXJZC_JG,
+		T.KMXJZC_SY,
+		T.KMXJZC_QY_D,
+		T.KMXJZC_QY_Z,
+		T.KMXJZC_QY_X,
+		T.KMXJZC_GTGSH,
+		T.KMXJZC_JM,
+		T.SBLX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.kcjb,t.qb,t.kmxjsr_jg,t.kmxjsr_sy,t.kmxjsr_qy_d,t.kmxjsr_qy_z,t.kmxjsr_qy_x,t.kmxjsr_gtgsh,t.kmxjsr_jm,t.kmxjzc_jg,t.kmxjzc_sy,t.kmxjzc_qy_d,t.kmxjzc_qy_z,t.kmxjzc_qy_x,t.kmxjzc_gtgsh,t.kmxjzc_jm,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,kcjb,qb,kmxjsr_jg,kmxjsr_sy,kmxjsr_qy_d,kmxjsr_qy_z,kmxjsr_qy_x,kmxjsr_gtgsh,kmxjsr_jm,kmxjzc_jg,kmxjzc_sy,kmxjzc_qy_d,kmxjzc_qy_z,kmxjzc_qy_x,kmxjzc_gtgsh,kmxjzc_jm,sblx from SYYH_SZLX <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlSzlxData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_SZLX T where 1=1 <include refid="sqlSzlxData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getSzlxDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_SZLX t
+		where 1=1
+		<include refid="sqlSzlxData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlSzlxData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="KCJB != null and KCJB != ''">
+			and t.KCJB = #{KCJB,jdbcType=VARCHAR }
+		</if>
+		<if test="QB != null and QB != ''">
+			and t.QB = #{QB,jdbcType=VARCHAR }
+		</if>
+		<if test="KMXJSR_JG != null and KMXJSR_JG != ''">
+			and t.KMXJSR_JG like '%${KMXJSR_JG}%'
+		</if>
+		<if test="KMXJSR_SY != null and KMXJSR_SY != ''">
+			and t.KMXJSR_SY like '%${KMXJSR_SY}%'
+		</if>
+		<if test="KMXJSR_QY_D != null and KMXJSR_QY_D != ''">
+			and t.KMXJSR_QY_D like '%${KMXJSR_QY_D}%'
+		</if>
+		<if test="KMXJSR_QY_Z != null and KMXJSR_QY_Z != ''">
+			and t.KMXJSR_QY_Z like '%${KMXJSR_QY_Z}%'
+		</if>
+		<if test="KMXJSR_QY_X != null and KMXJSR_QY_X != ''">
+			and t.KMXJSR_QY_X like '%${KMXJSR_QY_X}%'
+		</if>
+		<if test="KMXJSR_GTGSH != null and KMXJSR_GTGSH != ''">
+			and t.KMXJSR_GTGSH like '%${KMXJSR_GTGSH}%'
+		</if>
+		<if test="KMXJSR_JM != null and KMXJSR_JM != ''">
+			and t.KMXJSR_JM like '%${KMXJSR_JM}%'
+		</if>
+		<if test="KMXJZC_JG != null and KMXJZC_JG != ''">
+			and t.KMXJZC_JG like '%${KMXJZC_JG}%'
+		</if>
+		<if test="KMXJZC_SY != null and KMXJZC_SY != ''">
+			and t.KMXJZC_SY like '%${KMXJZC_SY}%'
+		</if>
+		<if test="KMXJZC_QY_D != null and KMXJZC_QY_D != ''">
+			and t.KMXJZC_QY_D like '%${KMXJZC_QY_D}%'
+		</if>
+		<if test="KMXJZC_QY_Z != null and KMXJZC_QY_Z != ''">
+			and t.KMXJZC_QY_Z like '%${KMXJZC_QY_Z}%'
+		</if>
+		<if test="KMXJZC_QY_X != null and KMXJZC_QY_X != ''">
+			and t.KMXJZC_QY_X like '%${KMXJZC_QY_X}%'
+		</if>
+		<if test="KMXJZC_GTGSH != null and KMXJZC_GTGSH != ''">
+			and t.KMXJZC_GTGSH like '%${KMXJZC_GTGSH}%'
+		</if>
+		<if test="KMXJZC_JM != null and KMXJZC_JM != ''">
+			and t.KMXJZC_JM like '%${KMXJZC_JM}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="szlxUpdateData" parameterType="Map">
+		update SYYH_SZLX t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="KCJB != null and KCJB != ''">
+			t.KCJB = #{KCJB,jdbcType=VARCHAR },
+		</if>
+		<if test="QB != null and QB != ''">
+			t.QB = #{QB,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJSR_JG != null and KMXJSR_JG != ''">
+			t.KMXJSR_JG = #{KMXJSR_JG,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJSR_SY != null and KMXJSR_SY != ''">
+			t.KMXJSR_SY = #{KMXJSR_SY,jdbcType=VARCHAR},
+		</if>
+		<if test="KMXJSR_QY_D != null and KMXJSR_QY_D != ''">
+			t.KMXJSR_QY_D = #{KMXJSR_QY_D,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJSR_QY_Z != null and KMXJSR_QY_Z != ''">
+			t.KMXJSR_QY_Z = #{KMXJSR_QY_Z,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJSR_QY_X != null and KMXJSR_QY_X != ''">
+			t.KMXJSR_QY_X = #{KMXJSR_QY_X,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJSR_GTGSH != null and KMXJSR_GTGSH != ''">
+			t.KMXJSR_GTGSH = #{KMXJSR_GTGSH,jdbcType=VARCHAR},
+		</if>
+		<if test="KMXJSR_JM != null and KMXJSR_JM != ''">
+			t.KMXJSR_JM = #{KMXJSR_JM,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJZC_JG != null and KMXJZC_JG != ''">
+			t.KMXJZC_JG = #{KMXJZC_JG,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJZC_SY != null and KMXJZC_SY != ''">
+			t.KMXJZC_SY = #{KMXJZC_SY,jdbcType=VARCHAR},
+		</if>
+		<if test="KMXJZC_QY_D != null and KMXJZC_QY_D != ''">
+			t.KMXJZC_QY_D = #{KMXJZC_QY_D,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJZC_QY_Z != null and KMXJZC_QY_Z != ''">
+			t.KMXJZC_QY_Z = #{KMXJZC_QY_Z,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJZC_QY_X != null and KMXJZC_QY_X != ''">
+			t.KMXJZC_QY_X = #{KMXJZC_QY_X,jdbcType=VARCHAR },
+		</if>
+		<if test="KMXJZC_GTGSH != null and KMXJZC_GTGSH != ''">
+			t.KMXJZC_GTGSH = #{KMXJZC_GTGSH,jdbcType=VARCHAR},
+		</if>
+		<if test="KMXJZC_JM != null and KMXJZC_JM != ''">
+			t.KMXJZC_JM = #{KMXJZC_JM,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.KCJB = #{item.KCJB,jdbcType=VARCHAR } and
+			t.QB = #{item.QB,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+
+	<!--批量删除 -->
+	<delete id="szlxDeleteData" parameterType="Map">
+		delete from SYYH_SZLX t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.KCJB = #{item.KCJB,jdbcType=VARCHAR } and
+					t.QB = #{item.QB,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	
+	<!-- SYYH_SZLX 结束-->
+	
+	
+	<!-- SYYH_QFNL 开始 -->
+	
+	<!-- 查询 -->
+	<select id="getQfnlData" resultType="Map" parameterType="Map">
+		SELECT
+		to_char(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.WDZS,
+		T.WDQF_YPWD,
+		T.WDQF_QFJPZ_ZB,
+		T.WDQF_QFJPZ_YB,
+		T.JZQF_QFZX,
+		T.JZQF_QFJPZ_ZB,
+		T.JZQF_QFJPZ_YB,
+		T.YQFKS,
+		T.SBLX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.wdzs,t.wdqf_ypwd,t.wdqf_qfjpz_zb,t.wdqf_qfjpz_yb,t.jzqf_qfzx,t.jzqf_qfjpz_zb,t.jzqf_qfjpz_yb,t.yqfks,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,wdzs,wdqf_ypwd,wdqf_qfjpz_zb,wdqf_qfjpz_yb,jzqf_qfzx,jzqf_qfjpz_zb,jzqf_qfjpz_yb,yqfks,sblx from SYYH_QFNL <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlQfnlData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_QFNL T where 1=1 <include refid="sqlQfnlData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getQfnlDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_QFNL t
+		where 1=1
+		<include refid="sqlQfnlData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlQfnlData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="WDZS != null and WDZS != ''">
+			and t.WDZS like '%${WDZS}%'
+		</if>
+		<if test="WDQF_YPWD != null and WDQF_YPWD != ''">
+			and t.WDQF_YPWD like '%${WDQF_YPWD}%'
+		</if>
+		<if test="WDQF_QFJPZ_ZB != null and WDQF_QFJPZ_ZB != ''">
+			and t.WDQF_QFJPZ_ZB like '%${WDQF_QFJPZ_ZB}%'
+		</if>
+		
+		<if test="WDQF_QFJPZ_YB != null and WDQF_QFJPZ_YB != ''">
+			and t.WDQF_QFJPZ_YB like '%${WDQF_QFJPZ_YB}%'
+		</if>
+		<if test="JZQF_QFZX != null and JZQF_QFZX != ''">
+			and t.JZQF_QFZX like '%${JZQF_QFZX}%'
+		</if>
+		<if test="JZQF_QFJPZ_ZB != null and JZQF_QFJPZ_ZB != ''">
+			and t.JZQF_QFJPZ_ZB like '%${JZQF_QFJPZ_ZB}%'
+		</if>
+		<if test="JZQF_QFJPZ_YB != null and JZQF_QFJPZ_YB != ''">
+			and t.JZQF_QFJPZ_YB like '%${JZQF_QFJPZ_YB}%'
+		</if>
+		<if test="YQFKS != null and YQFKS != ''">
+			and t.YQFKS like '%${YQFKS}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="qfnlUpdateData" parameterType="Map">
+		update SYYH_QFNL t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="WDZS != null and WDZS != ''">
+			t.WDZS = #{WDZS,jdbcType=VARCHAR },
+		</if>
+		<if test="WDQF_YPWD != null and WDQF_YPWD != ''">
+			t.WDQF_YPWD = #{WDQF_YPWD,jdbcType=VARCHAR },
+		</if>
+		<if test="WDQF_QFJPZ_ZB != null and WDQF_QFJPZ_ZB != ''">
+			t.WDQF_QFJPZ_ZB = #{WDQF_QFJPZ_ZB,jdbcType=VARCHAR },
+		</if>
+		<if test="WDQF_QFJPZ_YB != null and WDQF_QFJPZ_YB != ''">
+			t.WDQF_QFJPZ_YB = #{WDQF_QFJPZ_YB,jdbcType=VARCHAR },
+		</if>
+		<if test="JZQF_QFZX != null and JZQF_QFZX != ''">
+			t.JZQF_QFZX = #{JZQF_QFZX,jdbcType=VARCHAR },
+		</if>
+		<if test="JZQF_QFJPZ_ZB != null and JZQF_QFJPZ_ZB != ''">
+			t.JZQF_QFJPZ_ZB = #{JZQF_QFJPZ_ZB,jdbcType=VARCHAR },
+		</if>
+		<if test="JZQF_QFJPZ_YB != null and JZQF_QFJPZ_YB != ''">
+			t.JZQF_QFJPZ_YB = #{JZQF_QFJPZ_YB,jdbcType=VARCHAR },
+		</if>
+		<if test="YQFKS != null and YQFKS != ''">
+			t.YQFKS = #{YQFKS,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE},'YYYY-MM-DD')
+			and t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR}
+			and t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+
+	<!--批量删除 -->
+	<delete id="qfnlDeleteData" parameterType="Map">
+		delete from SYYH_QFNL t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or(
+					t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE},'YYYY-MM-DD')
+					and t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR}
+					and t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR}
+				)
+			</foreach>
+		</if>
+	</delete>
+	
+	<!-- SYYH_QFNL 结束-->
+	
+	
+	<!-- SYYH_YMKC 开始 -->
+	
+	<!-- 查询 -->
+	<select id="getYmkcData" resultType="Map" parameterType="Map">
+		SELECT
+		to_char(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.QB,
+		T.WZQ_KCJE,
+		T.CSQ_KCJE,
+		T.HJ_KCJE,
+		T.SBLX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.sjrq,t.jrjgbm,t.nbjgh,t.qb,t.wzq_kcje,t.csq_kcje,t.hj_kcje,t.sblx,rownum rn  from 
+					(select sjrq,jrjgbm,nbjgh,qb,wzq_kcje,csq_kcje,hj_kcje,sblx from SYYH_YMKC <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlYmkcData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_YMKC T where 1=1 <include refid="sqlYmkcData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getYmkcDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_YMKC t
+		where 1=1
+		<include refid="sqlYmkcData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlYmkcData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="QB != null and QB != ''">
+			and t.QB = #{QB,jdbcType=VARCHAR }
+		</if>
+		<if test="WZQ_KCJE != null and WZQ_KCJE != ''">
+			and t.WZQ_KCJE like '%${WZQ_KCJE}%'
+		</if>
+		<if test="CSQ_KCJE != null and CSQ_KCJE != ''">
+			and t.CSQ_KCJE like '%${CSQ_KCJE}%'
+		</if>
+		
+		<if test="HJ_KCJE != null and HJ_KCJE != ''">
+			and t.HJ_KCJE like '%${HJ_KCJE}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="YmkcUpdateData" parameterType="Map">
+		update SYYH_YMKC t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="QB != null and QB != ''">
+			t.QB = #{QB,jdbcType=VARCHAR },
+		</if>
+		<if test="WZQ_KCJE != null and WZQ_KCJE != ''">
+			t.WZQ_KCJE = #{WZQ_KCJE,jdbcType=VARCHAR },
+		</if>
+		<if test="CSQ_KCJE != null and CSQ_KCJE != ''">
+			t.CSQ_KCJE = #{CSQ_KCJE,jdbcType=VARCHAR },
+		</if>
+		<if test="HJ_KCJE != null and HJ_KCJE != ''">
+			t.HJ_KCJE = #{HJ_KCJE,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR }
+		</if>
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE},'YYYY-MM-DD')
+			and t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR}
+			and t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR}
+			and t.QB = #{item.QB,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+
+	<!--批量删除 -->
+	<delete id="ymkcDeleteData" parameterType="Map">
+		delete from SYYH_YMKC t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or(
+					t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE},'YYYY-MM-DD')
+					and t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR}
+					and t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR}
+					and t.QB = #{item.QB,jdbcType=VARCHAR}
+				)
+			</foreach>
+		</if>
+	</delete>
+	
+	<!-- SYYH_YMKC 结束-->
+	
+	<!-- SYYH_JRKC 开始 -->
+	<!-- 查询 -->
+	<select id="getJrkcData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.QBMC,
+		T.JEJK,
+		T.JEZZSB,
+		T.JEQT,
+		T.JEHJ,
+		T.TBZJJK,
+		T.TBZJZZSB,
+		T.TBZJQT,
+		T.TBZJHJ,
+		T.TBBHJK,
+		T.TBBHZZSB,
+		T.TBBHQT,
+		T.TBBHHJ,
+		T.ZBJK,
+		T.ZBZZSB,
+		T.ZBQT,
+		T.ZBHJ,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.SJRQ,t.JRJGBM,t.NBJGH,t.QBMC,t.JEJK,t.JEZZSB,t.JEQT,t.JEHJ,t.TBZJJK,t.TBZJZZSB,t.TBZJQT,t.TBZJHJ,t.TBBHJK,
+                    t.TBBHZZSB,t.TBBHQT,t.TBBHHJ,t.ZBJK,t.ZBZZSB,t.ZBQT,t.ZBHJ,t.SBLX,T.BZXX,rownum rn  from 
+					(select SJRQ,JRJGBM,NBJGH,QBMC,JEJK,JEZZSB,JEQT,JEHJ,TBZJJK,TBZJZZSB,TBZJQT,TBZJHJ,TBBHJK,
+                    TBBHZZSB,TBBHQT,TBBHHJ,ZBJK,ZBZZSB,ZBQT,ZBHJ,SBLX,BZXX from SYYH_JRKC <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrkcData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRKC T where 1=1 <include refid="sqlJrkcData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrkcDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRKC t
+		where 1=1
+		<include refid="sqlJrkcData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrkcData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="QBMC != null and QBMC != ''">
+			and t.QBMC like '%${QBMC}%'
+		</if>
+		<if test="JEJK != null and JEJK != ''">
+			and t.JEJK like '%${JEJK}%'
+		</if>
+		<!-- <if test="JEZZSB != null and JEZZSB != ''">
+			and t.JEZZSB like '%${JEZZSB}%'
+		</if>
+		<if test="JEQT != null and JEQT != ''">
+			and t.JEQT like '%${JEQT}%'
+		</if>		 -->
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	<!-- 修改 -->
+	<update id="JrkcUpdateData" parameterType="Map">
+		update SYYH_JRKC t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="QBMC != null and QBMC != ''">
+			t.QBMC = #{QBMC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEJK != null and JEJK != ''">
+			t.JEJK = #{JEJK,jdbcType=VARCHAR },
+		</if>
+		<if test="JEZZSB != null and JEZZSB != ''">
+			t.JEZZSB = #{JEZZSB,jdbcType=VARCHAR },
+		</if>
+		<if test="JEQT != null and JEQT != ''">
+			t.JEQT = #{JEQT,jdbcType=VARCHAR},
+		</if>
+		<if test="JEHJ != null and JEHJ != ''">
+			t.JEHJ = #{JEHJ,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJJK != null and TBZJJK != ''">
+			t.TBZJJK = #{TBZJJK,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJZZSB != null and TBZJZZSB != ''">
+			t.TBZJZZSB = #{TBZJZZSB,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJQT != null and TBZJQT != ''">
+			t.TBZJQT = #{TBZJQT,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJHJ != null and TBZJHJ != ''">
+			t.TBZJHJ = #{TBZJHJ,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHJK != null and TBBHJK != ''">
+			t.TBBHJK = #{TBBHJK,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHZZSB != null and TBBHZZSB != ''">
+			t.TBBHZZSB = #{TBBHZZSB,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHQT != null and TBBHQT != ''">
+			t.TBBHQT = #{TBBHQT,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHHJ != null and TBBHHJ != ''">
+			t.TBBHHJ = #{TBBHHJ,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBJK != null and ZBJK != ''">
+			t.ZBJK = #{ZBJK,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBZZSB != null and ZBZZSB != ''">
+			t.ZBZZSB = #{ZBZZSB,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBQT != null and ZBQT != ''">
+			t.ZBQT = #{ZBQT,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBHJ != null and ZBHJ != ''">
+			t.ZBHJ = #{ZBHJ,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.QBMC = #{item.QBMC,jdbcType=VARCHAR } and
+			t.JEJK = #{item.JEJK,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	<!-- SYYH_JRKC批量删除 -->
+	<delete id="jrkcDeleteData" parameterType="Map">
+		delete from SYYH_JRKC t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.QBMC = #{item.QBMC,jdbcType=VARCHAR } and
+					t.JEJK = #{item.JEJK,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!-- SYYH_JRKC 结束 -->
+	
+	<!-- SYYH_JRJB 开始 -->
+	<!-- 查询 -->
+	<select id="getJrjbData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.DWMC,
+		T.YBY,
+		T.WSY,
+		T.ESY,
+		T.SHY,
+		T.WY,
+		T.EY,
+		T.YY,
+		T.WJ,
+		T.EJ,
+		T.YJ,
+		T.FB,
+		T.HJ,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				( 
+					select t.SJRQ,t.JRJGBM,t.NBJGH,t.DWMC,t.YBY,t.WSY,t.ESY,t.SHY,t.WY,t.EY,t.YY,t.WJ,t.EJ,
+                    t.YJ,t.FB,t.HJ,t.SBLX,T.BZXX,rownum rn  from 
+					(select SJRQ,JRJGBM,NBJGH,DWMC,YBY,WSY,ESY,SHY,WY,EY,YY,WJ,EJ,
+                    YJ,FB,HJ,SBLX,BZXX from SYYH_JRJB <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrjbData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRJB T where 1=1 <include refid="sqlJrjbData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrjbDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRJB t
+		where 1=1
+		<include refid="sqlJrjbData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrjbData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="DWMC != null and DWMC != ''">
+			and t.DWMC like '%${DWMC}%'
+		</if>
+		<if test="FB != null and FB != ''">
+			and t.FB like '%${FB}%'
+		</if>
+		<if test="HJ != null and HJ != ''">
+			and t.HJ like '%${HJ}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 更新删除  SYYH_JRJB -->
+	<update id="JrjbUpdateData" parameterType="Map">
+		update SYYH_JRJB t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="DWMC != null and DWMC != ''">
+			t.DWMC = #{DWMC,jdbcType=VARCHAR },
+		</if>
+		<if test="YBY != null and YBY != ''">
+			t.YBY = #{YBY,jdbcType=VARCHAR },
+		</if>
+		<if test="WSY != null and WSY != ''">
+			t.WSY = #{WSY,jdbcType=VARCHAR },
+		</if>
+		<if test="ESY != null and ESY != ''">
+			t.ESY = #{ESY,jdbcType=VARCHAR},
+		</if>
+		<if test="SHY != null and SHY != ''">
+			t.SHY = #{SHY,jdbcType=VARCHAR },
+		</if>
+		<if test="WY != null and WY != ''">
+			t.WY = #{WY,jdbcType=VARCHAR },
+		</if>
+		<if test="EY != null and EY != ''">
+			t.EY = #{EY,jdbcType=VARCHAR },
+		</if>
+		<if test="YY != null and YY != ''">
+			t.YY = #{YY,jdbcType=VARCHAR },
+		</if>
+		<if test="WJ != null and WJ != ''">
+			t.WJ = #{WJ,jdbcType=VARCHAR },
+		</if>
+		<if test="EJ != null and EJ != ''">
+			t.EJ = #{EJ,jdbcType=VARCHAR },
+		</if>
+		<if test="YJ != null and YJ != ''">
+			t.YJ = #{YJ,jdbcType=VARCHAR },
+		</if>
+		<if test="FB != null and FB != ''">
+			t.FB = #{FB,jdbcType=VARCHAR },
+		</if>
+		<if test="HJ != null and HJ != ''">
+			t.HJ = #{HJ,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.DWMC = #{item.DWMC,jdbcType=VARCHAR } and
+			t.HJ = #{item.HJ,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	
+	<!--批量删除 -->
+	<delete id="jrjbDeleteData" parameterType="Map">
+		delete from SYYH_JRJB t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.DWMC = #{item.DWMC,jdbcType=VARCHAR } and
+					t.HJ = #{item.HJ,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!--SYYH_JRJB结束  -->
+	
+	<!-- SYYH_JRSZ 开始 -->
+	<!-- 查询 -->
+	<select id="getJrszData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.XMMC,
+		T.JEBQ,
+		T.JENLJ,
+		T.TBZJBQ,
+		T.TBZJNLJ,
+		T.TBZFBQ,
+		T.TBZFNLJ,
+		T.ZBBQ,
+		T.ZBNLJ,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				   ( 
+					select 
+					t.SJRQ,
+					t.JRJGBM,
+					t.NBJGH,
+					t.XMMC,
+					t.JEBQ,
+					t.JENLJ,
+					t.TBZJBQ,
+					t.TBZJNLJ,
+					t.TBZFBQ,
+					t.TBZFNLJ,
+					t.ZBBQ,
+					t.ZBNLJ,
+		            t.SBLX,
+		            t.BZXX,
+		            rownum rn  from 
+					(select 
+					SJRQ,
+					JRJGBM,
+					NBJGH,
+					XMMC,
+					JEBQ,
+					JENLJ,
+					TBZJBQ,
+					TBZJNLJ,
+					TBZFBQ,
+					TBZFNLJ,
+					ZBBQ,
+					ZBNLJ,
+		            SBLX,
+		            BZXX from SYYH_JRSZ <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrszData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRSZ T where 1=1 <include refid="sqlJrszData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrszDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRSZ t
+		where 1=1
+		<include refid="sqlJrszData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrszData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="XMMC != null and XMMC != ''">
+			and t.XMMC like '%${XMMC}%'
+		</if>
+		<if test="JEBQ != null and JEBQ != ''">
+			and t.JEBQ like '%${JEBQ}%'
+		</if>
+		<if test="JENLJ != null and JENLJ != ''">
+			and t.JENLJ like '%${JENLJ}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 更新删除  SYYH_JRSZ -->
+	<update id="JrszUpdateData" parameterType="Map">
+		update SYYH_JRSZ t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="XMMC != null and XMMC != ''">
+			t.XMMC = #{XMMC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBQ != null and JEBQ != ''">
+			t.JEBQ = #{JEBQ,jdbcType=VARCHAR },
+		</if>
+		<if test="JENLJ != null and JENLJ != ''">
+			t.JENLJ = #{JENLJ,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBQ != null and TBZJBQ != ''">
+			t.TBZJBQ = #{TBZJBQ,jdbcType=VARCHAR},
+		</if>
+		<if test="TBZJNLJ != null and TBZJNLJ != ''">
+			t.TBZJNLJ = #{TBZJNLJ,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZFBQ != null and TBZFBQ != ''">
+			t.TBZFBQ = #{TBZFBQ,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZFNLJ != null and TBZFNLJ != ''">
+			t.TBZFNLJ = #{TBZFNLJ,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBQ != null and ZBBQ != ''">
+			t.ZBBQ = #{ZBBQ,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJ != null and ZBNLJ != ''">
+			t.ZBNLJ = #{ZBNLJ,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.XMMC = #{item.XMMC,jdbcType=VARCHAR } and
+			t.JEBQ = #{item.JEBQ,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	
+	<!--批量删除 -->
+	<delete id="jrszDeleteData" parameterType="Map">
+		delete from SYYH_JRSZ t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.XMMC = #{item.XMMC,jdbcType=VARCHAR } and
+					t.JEBQ = #{item.JEBQ,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!--SYYH_JRSZ结束  -->
+	
+	<!-- SYYH_JRYW 开始 -->
+	<!-- 查询 -->
+	<select id="getJrywData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.HYMC,
+		T.JEBJDZC,
+		T.JEBJDSR,
+		T.JENLJZC,
+		T.JENLJSR,
+		T.TBZJBJDZC,
+		T.TBZJBJDSR,
+		T.TBZJNLJZC,
+		T.TBZJNLJSR,
+		T.TBBHBJDZC,
+		T.TBBHBJDSR,
+		T.TBBHNLJZC,
+		T.TBBHNLJSR,
+		T.ZBBJDZC,
+		T.ZBBJDSR,
+		T.ZBNLJZC,
+		T.ZBNLJSR,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				   ( 
+					select 
+					t.SJRQ,
+					t.JRJGBM,
+					t.NBJGH,
+					t.HYMC,
+					t.JEBJDZC,
+					t.JEBJDSR,
+					t.JENLJZC,
+					t.JENLJSR,
+					t.TBZJBJDZC,
+					t.TBZJBJDSR,
+					t.TBZJNLJZC,
+					t.TBZJNLJSR,
+					t.TBBHBJDZC,
+					t.TBBHBJDSR,
+					t.TBBHNLJZC,
+					t.TBBHNLJSR,
+					t.ZBBJDZC,
+					t.ZBBJDSR,
+					t.ZBNLJZC,
+					t.ZBNLJSR,
+		            t.SBLX,
+		            t.BZXX,
+		            rownum rn  from 
+					(   select 
+						SJRQ,
+						JRJGBM,
+						NBJGH,
+						HYMC,
+						JEBJDZC,
+						JEBJDSR,
+						JENLJZC,
+						JENLJSR,
+						TBZJBJDZC,
+						TBZJBJDSR,
+						TBZJNLJZC,
+						TBZJNLJSR,
+						TBBHBJDZC,
+						TBBHBJDSR,
+						TBBHNLJZC,
+						TBBHNLJSR,
+						ZBBJDZC,
+						ZBBJDSR,
+						ZBNLJZC,
+						ZBNLJSR,
+		            SBLX,
+		            BZXX from SYYH_JRYW <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrywData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRYW T where 1=1 <include refid="sqlJrywData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrywDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRYW t
+		where 1=1
+		<include refid="sqlJrywData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrywData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="HYMC != null and HYMC != ''">
+			and t.HYMC like '%${HYMC}%'
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			and t.JEBJDZC like '%${JEBJDZC}%'
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			and t.JEBJDSR like '%${JEBJDSR}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 更新删除  SYYH_JRYW -->
+	<update id="JrywUpdateData" parameterType="Map">
+		update SYYH_JRYW t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="HYMC != null and HYMC != ''">
+			t.HYMC = #{HYMC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			t.JEBJDZC = #{JEBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			t.JEBJDSR = #{JEBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="JENLJZC != null and JENLJZC != ''">
+			t.JENLJZC = #{JENLJZC,jdbcType=VARCHAR},
+		</if>
+		<if test="JENLJSR != null and JENLJSR != ''">
+			t.JENLJSR = #{JENLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDZC != null and TBZJBJDZC != ''">
+			t.TBZJBJDZC = #{TBZJBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDSR != null and TBZJBJDSR != ''">
+			t.TBZJBJDSR = #{TBZJBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJZC != null and TBZJNLJZC != ''">
+			t.TBZJNLJZC = #{TBZJNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJSR != null and TBZJNLJSR != ''">
+			t.TBZJNLJSR = #{TBZJNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDZC != null and TBBHBJDZC != ''">
+			t.TBBHBJDZC = #{TBBHBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDSR != null and TBBHBJDSR != ''">
+			t.TBBHBJDSR = #{TBBHBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJZC != null and TBBHNLJZC != ''">
+			t.TBBHNLJZC = #{TBBHNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJSR != null and TBBHNLJSR != ''">
+			t.TBBHNLJSR = #{TBBHNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDZC != null and ZBBJDZC != ''">
+			t.ZBBJDZC = #{ZBBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDSR != null and ZBBJDSR != ''">
+			t.ZBBJDSR = #{ZBBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJZC != null and ZBNLJZC != ''">
+			t.ZBNLJZC = #{ZBNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJSR != null and ZBNLJSR != ''">
+			t.ZBNLJSR = #{ZBNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.HYMC = #{item.HYMC,jdbcType=VARCHAR } and
+			t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	
+	<!--批量删除 -->
+	<delete id="jrywDeleteData" parameterType="Map">
+		delete from SYYH_JRYW t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.HYMC = #{item.HYMC,jdbcType=VARCHAR } and
+					t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!--SYYH_JRYW结束  -->
+	
+	<!-- SYYH_JRYT 开始 -->
+	<!-- 查询 -->
+	<select id="getJrytData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.XMMC,
+		T.JEBJDZC,
+		T.JEBJDSR,
+		T.JENLJZC,
+		T.JENLJSR,
+		T.TBZJBJDZC,
+		T.TBZJBJDSR,
+		T.TBZJNLJZC,
+		T.TBZJNLJSR,
+		T.TBBHBJDZC,
+		T.TBBHBJDSR,
+		T.TBBHNLJZC,
+		T.TBBHNLJSR,
+		T.ZBBJDZC,
+		T.ZBBJDSR,
+		T.ZBNLJZC,
+		T.ZBNLJSR,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				   ( 
+					select 
+					t.SJRQ,
+					t.JRJGBM,
+					t.NBJGH,
+					t.XMMC,
+					t.JEBJDZC,
+					t.JEBJDSR,
+					t.JENLJZC,
+					t.JENLJSR,
+					t.TBZJBJDZC,
+					t.TBZJBJDSR,
+					t.TBZJNLJZC,
+					t.TBZJNLJSR,
+					t.TBBHBJDZC,
+					t.TBBHBJDSR,
+					t.TBBHNLJZC,
+					t.TBBHNLJSR,
+					t.ZBBJDZC,
+					t.ZBBJDSR,
+					t.ZBNLJZC,
+					t.ZBNLJSR,
+		            t.SBLX,
+		            t.BZXX,rownum rn  from 
+					(   select 
+						SJRQ,
+						JRJGBM,
+						NBJGH,
+						XMMC,
+						JEBJDZC,
+						JEBJDSR,
+						JENLJZC,
+						JENLJSR,
+						TBZJBJDZC,
+						TBZJBJDSR,
+						TBZJNLJZC,
+						TBZJNLJSR,
+						TBBHBJDZC,
+						TBBHBJDSR,
+						TBBHNLJZC,
+						TBBHNLJSR,
+						ZBBJDZC,
+						ZBBJDSR,
+						ZBNLJZC,
+						ZBNLJSR,
+		            SBLX,
+		            BZXX from SYYH_JRYT <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrytData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRYT T where 1=1 <include refid="sqlJrytData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrytDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRYT t
+		where 1=1
+		<include refid="sqlJrytData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrytData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="XMMC != null and XMMC != ''">
+			and t.XMMC like '%${XMMC}%'
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			and t.JEBJDZC like '%${JEBJDZC}%'
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			and t.JEBJDSR like '%${JEBJDSR}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 更新删除  SYYH_JRYT -->
+	<update id="JrytUpdateData" parameterType="Map">
+		update SYYH_JRYT t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="XMMC != null and XMMC != ''">
+			t.XMMC = #{XMMC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			t.JEBJDZC = #{JEBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			t.JEBJDSR = #{JEBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="JENLJZC != null and JENLJZC != ''">
+			t.JENLJZC = #{JENLJZC,jdbcType=VARCHAR},
+		</if>
+		<if test="JENLJSR != null and JENLJSR != ''">
+			t.JENLJSR = #{JENLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDZC != null and TBZJBJDZC != ''">
+			t.TBZJBJDZC = #{TBZJBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDSR != null and TBZJBJDSR != ''">
+			t.TBZJBJDSR = #{TBZJBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJZC != null and TBZJNLJZC != ''">
+			t.TBZJNLJZC = #{TBZJNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJSR != null and TBZJNLJSR != ''">
+			t.TBZJNLJSR = #{TBZJNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDZC != null and TBBHBJDZC != ''">
+			t.TBBHBJDZC = #{TBBHBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDSR != null and TBBHBJDSR != ''">
+			t.TBBHBJDSR = #{TBBHBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJZC != null and TBBHNLJZC != ''">
+			t.TBBHNLJZC = #{TBBHNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJSR != null and TBBHNLJSR != ''">
+			t.TBBHNLJSR = #{TBBHNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDZC != null and ZBBJDZC != ''">
+			t.ZBBJDZC = #{ZBBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDSR != null and ZBBJDSR != ''">
+			t.ZBBJDSR = #{ZBBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJZC != null and ZBNLJZC != ''">
+			t.ZBNLJZC = #{ZBNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJSR != null and ZBNLJSR != ''">
+			t.ZBNLJSR = #{ZBNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.XMMC = #{item.XMMC,jdbcType=VARCHAR } and
+			t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	
+	<!--批量删除 -->
+	<delete id="jrytDeleteData" parameterType="Map">
+		delete from SYYH_JRYT t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.XMMC = #{item.XMMC,jdbcType=VARCHAR } and
+					t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!--SYYH_JRYT结束  -->
+	
+	<!-- SYYH_JRDS 开始 -->
+	<!-- 查询 -->
+	<select id="getJrdsData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.XMMC,
+		T.JEBJDZC,
+		T.JEBJDSR,
+		T.JENLJZC,
+		T.JENLJSR,
+		T.TBZJBJDZC,
+		T.TBZJBJDSR,
+		T.TBZJNLJZC,
+		T.TBZJNLJSR,
+		T.TBBHBJDZC,
+		T.TBBHBJDSR,
+		T.TBBHNLJZC,
+		T.TBBHNLJSR,
+		T.ZBBJDZC,
+		T.ZBBJDSR,
+		T.ZBNLJZC,
+		T.ZBNLJSR,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				   ( 
+					select 
+					t.SJRQ,
+					t.JRJGBM,
+					t.NBJGH,
+					t.XMMC,
+					t.JEBJDZC,
+					t.JEBJDSR,
+					t.JENLJZC,
+					t.JENLJSR,
+					t.TBZJBJDZC,
+					t.TBZJBJDSR,
+					t.TBZJNLJZC,
+					t.TBZJNLJSR,
+					t.TBBHBJDZC,
+					t.TBBHBJDSR,
+					t.TBBHNLJZC,
+					t.TBBHNLJSR,
+					t.ZBBJDZC,
+					t.ZBBJDSR,
+					t.ZBNLJZC,
+					t.ZBNLJSR,
+		            t.SBLX,
+		            t.BZXX,rownum rn  from 
+					(   select 
+						SJRQ,
+						JRJGBM,
+						NBJGH,
+						XMMC,
+						JEBJDZC,
+						JEBJDSR,
+						JENLJZC,
+						JENLJSR,
+						TBZJBJDZC,
+						TBZJBJDSR,
+						TBZJNLJZC,
+						TBZJNLJSR,
+						TBBHBJDZC,
+						TBBHBJDSR,
+						TBBHNLJZC,
+						TBBHNLJSR,
+						ZBBJDZC,
+						ZBBJDSR,
+						ZBNLJZC,
+						ZBNLJSR,
+		            SBLX,
+		            BZXX from SYYH_JRDS <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrdsData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRDS T where 1=1 <include refid="sqlJrdsData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrdsDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRDS t
+		where 1=1
+		<include refid="sqlJrdsData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrdsData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="XMMC != null and XMMC != ''">
+			and t.XMMC like '%${XMMC}%'
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			and t.JEBJDZC like '%${JEBJDZC}%'
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			and t.JEBJDSR like '%${JEBJDSR}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 更新删除  SYYH_JRDS -->
+	<update id="JrdsUpdateData" parameterType="Map">
+		update SYYH_JRDS t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="XMMC != null and XMMC != ''">
+			t.XMMC = #{XMMC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			t.JEBJDZC = #{JEBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			t.JEBJDSR = #{JEBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="JENLJZC != null and JENLJZC != ''">
+			t.JENLJZC = #{JENLJZC,jdbcType=VARCHAR},
+		</if>
+		<if test="JENLJSR != null and JENLJSR != ''">
+			t.JENLJSR = #{JENLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDZC != null and TBZJBJDZC != ''">
+			t.TBZJBJDZC = #{TBZJBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDSR != null and TBZJBJDSR != ''">
+			t.TBZJBJDSR = #{TBZJBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJZC != null and TBZJNLJZC != ''">
+			t.TBZJNLJZC = #{TBZJNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJSR != null and TBZJNLJSR != ''">
+			t.TBZJNLJSR = #{TBZJNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDZC != null and TBBHBJDZC != ''">
+			t.TBBHBJDZC = #{TBBHBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDSR != null and TBBHBJDSR != ''">
+			t.TBBHBJDSR = #{TBBHBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJZC != null and TBBHNLJZC != ''">
+			t.TBBHNLJZC = #{TBBHNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJSR != null and TBBHNLJSR != ''">
+			t.TBBHNLJSR = #{TBBHNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDZC != null and ZBBJDZC != ''">
+			t.ZBBJDZC = #{ZBBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDSR != null and ZBBJDSR != ''">
+			t.ZBBJDSR = #{ZBBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJZC != null and ZBNLJZC != ''">
+			t.ZBNLJZC = #{ZBNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJSR != null and ZBNLJSR != ''">
+			t.ZBNLJSR = #{ZBNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.XMMC = #{item.XMMC,jdbcType=VARCHAR } and
+			t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	
+	<!--批量删除 -->
+	<delete id="jrdsDeleteData" parameterType="Map">
+		delete from SYYH_JRDS t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.XMMC = #{item.XMMC,jdbcType=VARCHAR } and
+					t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!--SYYH_JRDS结束  -->
+	
+	<!-- SYYH_JRTJ 开始 -->
+	<!-- 查询 -->
+	<select id="getJrtjData" resultType="Map" parameterType="Map">
+		SELECT
+		TO_CHAR(T.SJRQ,'yyyy-mm-dd') SJRQ,
+		T.JRJGBM,
+		T.NBJGH,
+		T.DWMC,
+		T.JEBJDZC,
+		T.JEBJDSR,
+		T.JENLJZC,
+		T.JENLJSR,
+		T.TBZJBJDZC,
+		T.TBZJBJDSR,
+		T.TBZJNLJZC,
+		T.TBZJNLJSR,
+		T.TBBHBJDZC,
+		T.TBBHBJDSR,
+		T.TBBHNLJZC,
+		T.TBBHNLJSR,
+		T.ZBBJDZC,
+		T.ZBBJDSR,
+		T.ZBNLJZC,
+		T.ZBNLJSR,
+		T.SBLX,
+		T.BZXX
+		FROM
+		<choose>
+			<when test="maxData != null and maxData != '' and minData != null and minData != ''">
+				   ( 
+					select 
+					t.SJRQ,
+					t.JRJGBM,
+					t.NBJGH,
+					t.DWMC,
+					t.JEBJDZC,
+					t.JEBJDSR,
+					t.JENLJZC,
+					t.JENLJSR,
+					t.TBZJBJDZC,
+					t.TBZJBJDSR,
+					t.TBZJNLJZC,
+					t.TBZJNLJSR,
+					t.TBBHBJDZC,
+					t.TBBHBJDSR,
+					t.TBBHNLJZC,
+					t.TBBHNLJSR,
+					t.ZBBJDZC,
+					t.ZBBJDSR,
+					t.ZBNLJZC,
+					t.ZBNLJSR,
+		            t.SBLX,
+		            t.BZXX,rownum rn  from 
+					(   select 
+						SJRQ,
+						JRJGBM,
+						NBJGH,
+						DWMC,
+						JEBJDZC,
+						JEBJDSR,
+						JENLJZC,
+						JENLJSR,
+						TBZJBJDZC,
+						TBZJBJDSR,
+						TBZJNLJZC,
+						TBZJNLJSR,
+						TBBHBJDZC,
+						TBBHBJDSR,
+						TBBHNLJZC,
+						TBBHNLJSR,
+						ZBBJDZC,
+						ZBBJDSR,
+						ZBNLJZC,
+						ZBNLJSR,
+		            	SBLX,
+		            BZXX from SYYH_JRTJ <if test="sort != null and sort != ''"> order by ${sort} ${order}</if>) t where 1=1 <include refid="sqlJrtjData"></include>
+					and rownum &lt;= #{maxData,jdbcType=VARCHAR }
+				)T where rn &gt;  #{minData,jdbcType=VARCHAR }
+			</when>
+			<otherwise>
+				SYYH_JRTJ T where 1=1 <include refid="sqlJrtjData"></include>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据条件获取数据条数 -->
+	<select id="getJrtjDataCount" resultType="Map" parameterType="Map">
+		select 
+			count(*) count
+		from SYYH_JRTJ t
+		where 1=1
+		<include refid="sqlJrtjData"></include>
+	</select>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlJrtjData">
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			and t.JRJGBM like '%${JRJGBM}%'
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			and t.NBJGH like '%${NBJGH}%'
+		</if>
+		<if test="DWMC != null and DWMC != ''">
+			and t.DWMC like '%${DWMC}%'
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			and t.JEBJDZC like '%${JEBJDZC}%'
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			and t.JEBJDSR like '%${JEBJDSR}%'
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			and t.SBLX = #{SBLX}
+		</if>
+		<if test="DataAuthNBJGH != null and DataAuthNBJGH != ''">
+			and t.NBJGH in (
+				select BR_NO from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{DataAuthNBJGH,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+			)
+		</if>
+	</sql>
+	
+	<!-- 更新删除  SYYH_JRDS -->
+	<update id="JrtjUpdateData" parameterType="Map">
+		update SYYH_JRTJ t set
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="JRJGBM != null and JRJGBM != ''">
+			t.JRJGBM = #{JRJGBM,jdbcType=VARCHAR },
+		</if>
+		<if test="NBJGH != null and NBJGH != ''">
+			t.NBJGH = #{NBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="DWMC != null and DWMC != ''">
+			t.DWMC = #{DWMC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDZC != null and JEBJDZC != ''">
+			t.JEBJDZC = #{JEBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="JEBJDSR != null and JEBJDSR != ''">
+			t.JEBJDSR = #{JEBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="JENLJZC != null and JENLJZC != ''">
+			t.JENLJZC = #{JENLJZC,jdbcType=VARCHAR},
+		</if>
+		<if test="JENLJSR != null and JENLJSR != ''">
+			t.JENLJSR = #{JENLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDZC != null and TBZJBJDZC != ''">
+			t.TBZJBJDZC = #{TBZJBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJBJDSR != null and TBZJBJDSR != ''">
+			t.TBZJBJDSR = #{TBZJBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJZC != null and TBZJNLJZC != ''">
+			t.TBZJNLJZC = #{TBZJNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBZJNLJSR != null and TBZJNLJSR != ''">
+			t.TBZJNLJSR = #{TBZJNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDZC != null and TBBHBJDZC != ''">
+			t.TBBHBJDZC = #{TBBHBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHBJDSR != null and TBBHBJDSR != ''">
+			t.TBBHBJDSR = #{TBBHBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJZC != null and TBBHNLJZC != ''">
+			t.TBBHNLJZC = #{TBBHNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="TBBHNLJSR != null and TBBHNLJSR != ''">
+			t.TBBHNLJSR = #{TBBHNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDZC != null and ZBBJDZC != ''">
+			t.ZBBJDZC = #{ZBBJDZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBBJDSR != null and ZBBJDSR != ''">
+			t.ZBBJDSR = #{ZBBJDSR,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJZC != null and ZBNLJZC != ''">
+			t.ZBNLJZC = #{ZBNLJZC,jdbcType=VARCHAR },
+		</if>
+		<if test="ZBNLJSR != null and ZBNLJSR != ''">
+			t.ZBNLJSR = #{ZBNLJSR,jdbcType=VARCHAR },
+		</if>
+		<if test="SBLX != null and SBLX != ''">
+			t.SBLX = #{SBLX,jdbcType=VARCHAR },
+		</if>
+		t.BZXX = #{BZXX,jdbcType=VARCHAR }
+		where
+		<foreach collection="last_row" item="item" index="index"
+			separator=" ">
+			t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+			t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+			t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+			t.DWMC = #{item.DWMC,jdbcType=VARCHAR } and
+			t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+			t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+		</foreach>
+	</update>
+	
+	
+	<!--批量删除 -->
+	<delete id="jrtjDeleteData" parameterType="Map">
+		delete from SYYH_JRTJ t where 1=2
+		<if test="deleted != null and deleted != ''">
+			<foreach collection="deleted" item="item" index="index"
+				separator=" ">
+				or
+				(	t.SJRQ = to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') and
+					t.JRJGBM = #{item.JRJGBM,jdbcType=VARCHAR } and
+					t.NBJGH = #{item.NBJGH,jdbcType=VARCHAR } and
+					t.DWMC = #{item.DWMC,jdbcType=VARCHAR } and
+					t.JEBJDZC = #{item.JEBJDZC,jdbcType=VARCHAR } and
+					t.SBLX = #{item.SBLX,jdbcType=VARCHAR }
+				)
+			</foreach>
+		</if>
+	</delete>
+	<!--SYYH_JRTJ结束  -->
+</mapper>

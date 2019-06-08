@@ -1,0 +1,142 @@
+@charset "utf-8";
+/*公共css*/
+/*采集系统首页 start*/
+	.acquisitionSystem {
+        width: 100%;
+        height: 100%;
+    }
+    /*top*/
+    .acquisitionSystem .top{
+        width: 100%;
+        height: 1.05rem;
+        background: url("../images/topBg.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+        overflow: hidden;
+        padding: 0 0.2rem;
+    }
+    .acquisitionSystem .top .systemLogo{
+        width: 7.99rem;
+        height: 0.64rem;
+        margin: 0.25rem 0 0.16rem 0;
+        background: url(../images/systemLogo.png) no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .top .topRight{
+        overflow: hidden;
+        font-size: 0.16rem;
+        color: #fff;
+        padding-right: 0.4rem;
+    }
+    .acquisitionSystem .topRight .left{
+        line-height: 0.2rem;
+        text-align: right;
+        margin: 0.32rem auto;
+        padding-right: 0.1rem;
+    }
+    .acquisitionSystem .topRight .right{
+        line-height: 1.05rem;
+    }
+    .acquisitionSystem .topRight .set,
+    .acquisitionSystem .topRight .loginOut{
+        width: 0.28rem;
+        height: 0.28rem;
+        display: inline-block;
+        cursor: pointer;
+        margin-left: 0.2rem;
+        margin-top: 0.35rem;
+    }
+    .acquisitionSystem .topRight .set{
+        background: url("../images/set.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .topRight .loginOut{
+        background: url("../images/loginOut.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    /*top*/
+    .acquisitionSystem .bottom{
+        width: 100%;
+        height: calc(100% - 1.05rem);
+    }
+    /*左侧栏*/
+ /*    .acquisitionSystem .bottom .leftSide{
+        width: 2.67rem;
+        background-color: #033c93;
+        height: 100%;
+    } */
+    .acquisitionSystem .bottom .list_dt{
+        width: 100%;
+        height: 0.81rem;
+        line-height: 0.81rem;
+        cursor: pointer;
+        font-size: 0.18rem;
+        color: #fff;
+        text-align: center;
+        border-bottom: 1px solid rgba(204, 204, 204, 0.1);
+    }
+    .acquisitionSystem .bottom .list_dt:hover,
+    .acquisitionSystem .bottom #open{
+        background-image: -webkit-linear-gradient( 90deg, rgb(7,100,216) 0%, rgb(4,158,255) 100%);
+        border-bottom: none;
+    }
+    .acquisitionSystem .bottom .leftSide .icon{
+        width: 0.3rem;
+        height: 0.3rem;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .acquisitionSystem .leftSide .dataTransfer{
+        background: url("../images/dataTransfer.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .leftSide .reportingManagement{
+        background: url("../images/reportingManagement.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .leftSide .systemManagement{
+        background: url("../images/systemManagement.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .bottom .leftSide .txt{
+            margin: 0 0.2rem;
+            color: #c9dbff;
+    }
+    .acquisitionSystem .bottom .list_dt:hover .txt,
+    .acquisitionSystem .bottom #open .txt{
+            color: #fff;
+            font-weight: bold;
+    }
+    .acquisitionSystem .bottom .leftSide .drop_icon{
+       width: 0.11rem;
+        height: 0.08rem;
+        display: inline-block;
+        background: url("../images/drop.png") no-repeat 100% 100%;
+        background-size: 100% 100%;
+    }
+    .acquisitionSystem .bottom .list_dt:hover .drop_icon,
+    .acquisitionSystem .bottom #open .drop_icon{
+        background: url("../images/dropHover.png") no-repeat scroll right center transparent;
+    }
+
+    .acquisitionSystem .bottom .list_dl .list_dd{
+        display: none;
+        border-bottom: 1px solid rgba(204, 204, 204, 0.1);
+    }
+    .acquisitionSystem .bottom .list_dl .list_li{
+        color: #72b3ef;
+        text-align: center;
+        padding: 0 0.1rem;
+        height: 0.4rem;
+        line-height:0.4rem;
+        margin: 0 auto;
+        padding-left: 0.3rem;
+        cursor: pointer;
+        font-size: 0.14rem
+    }
+    .acquisitionSystem .bottom .list_dl .list_li.active,
+    .acquisitionSystem .bottom .list_dl .list_li:hover{
+        color: #fff;
+        background-color: rgba(4, 158, 255, 0.5);
+    }
+    /*左侧栏*/
+/*公共css*/

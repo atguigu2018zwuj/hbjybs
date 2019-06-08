@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customReport">
+<!-- 自定义报表 维度层级树 START -->
+	<!--客户类别列表-->
+	<select id="getCusTypeTree_dep" resultType="Map" parameterType="Map">
+		select * from (
+		  select 'cust_root' "id",'客户类型' "name",'0' "level",'0' "pId" from dual
+		  union
+		  select 
+		    concat(case c.code when 'ETYP35' then '01_' when 'ETYP36' then '02_' when 'ETYP37' then '00_' end,c.key) "id",
+		    c.value "name",
+		    case c.code when 'ETYP34' then '1' else '2' end as "level",
+		    case c.code when 'ETYP35' then '01' when 'ETYP36' then '02' when 'ETYP37' then '00' else 'cust_root' end as "pId" 
+		  from m_code c where c.code in ('ETYP34','ETYP35','ETYP36','ETYP37') and c.key != 'UNKNOW'
+		) a
+		order by a."level",a."id"
+	</select>
+	<!--企业规模列表-->
+	<select id="geQygmTree_dep" resultType="Map" parameterType="Map">
+		select * from (
+		  select 'qygm_root' "id",'企业规模' "name",'0' "level",'0' "pId" from dual
+		  union
+		  select '4' "id",'3000万元以上' "name",'1' "level",'qygm_root' "pId" from dual
+		  union
+		  select '3' "id",'1000-3000万元' "name",'1' "level",'qygm_root' "pId" from dual
+		  union
+		  select '2' "id",'500-1000万元' "name",'1' "level",'qygm_root' "pId" from dual
+		  union
+		  select '1' "id",'500万元以下' "name",'1' "level",'qygm_root' "pId" from dual
+		) a
+		order by a."level",a."id"
+	</select>
+	<!--币种列表-->
+	<select id="getCoinTree_dep" resultType="Map" parameterType="Map">
+		select * from (
+		  select 'coin_root' "id",'币种' "name",'0' "level",'0' "pId" from dual
+		  union
+		  select '01' "id",'人民币' "name",'1' "level",'coin_root' "pId" from dual
+<!-- 		  select t.code_key "id",t.code_value "name",'1' "level",'coin_root' "pId" from CODE_BZ t -->
+		) a
+		order by a."level",a."id"
+	</select>
+	<!--金融机构地区层级树-->
+	<select id="getAreaTree_dep" resultType="Map" parameterType="Map">
+		select * from (
+		  (select 'area_root' "id", '金融机构地区' "name", '0' "level", '0' "pId" from dual)
+		  union
+		  (select thn.code_key "id", thn.code_value "name", thn.dq_level "level", 'area_root' "pId" from CODE_DQMB thn where thn.code_value = '河南省')
+		  union
+		  (select '000001' "id", '省外' "name", '省' "level", 'area_root' "pId" from dual)
+		  union
+		  (select distinct 
+		         t.code_key "id", 
+		         t.code_value "name", 
+		         t.dq_level "level",
+		         t.higherarea "pId" 
+		  from CODE_DQMB t 
+		  where t.code_key not in ('000000','410000')
+		  start with t.code_key in (select distinct j.dqdm from hbjyods.jrjgxx j where j.jgjb in ('1','2','3')) 
+		  connect by prior t.higherarea = t.code_key)
+		) a
+		order by a."level",a."id"
+	</select>
+	<!--数据日期层级树-->
+	<select id="getDateTree_dep" resultType="Map" parameterType="Map">
+		select distinct substr(jioyrq,1,6) "jioyrq_ym" from hbjyods.cbs_bdpal
+	</select>
+	<!--金融机构层级树-->
+	<select id="getOrgTree_dep" resultType="Map" parameterType="Map">
+		select * from (
+		  (select 'org_root' "id",'金融机构' "name",'0' "level",'0' "pId" from dual)
+		  union
+		  (select distinct 
+		    jrjg.br_no "id",
+		    jrjg.jrjgmc "name",
+		    jrjg.jgjb "level",
+		    case jrjg.br_no when '1699999998' then 'org_root' else jrjg.sjgljgnbjgh end "pId" 
+		  from hbjyods.jrjgxx jrjg 
+		  start with jrjg.jgjb in ('1','2','3') 
+		  connect by prior jrjg.sjgljgnbjgh = jrjg.br_no)
+		) a
+		order by a."level",a."id"
+	</select>
+	<!--贷款主体行业类别列表-->
+	<select id="getHylbTree_dep" resultType="map" parameterType="map">
+		select * from (
+		  select 'hylb_root' "id",'贷款主体行业类别' "name",'0' "level",'0' "pId" from dual
+		  union
+		  select distinct a.cunkzl "id",ch.code_value "name",'1' "level",'hylb_root' "pId"
+		  from hbjyods.cbs_adpxx a
+		  inner join code_hylb ch on concat('A',a.cunkzl) = ch.code_key
+		) a
+		order by a."level",a."id"
+	</select>
+<!-- 自定义报表 维度层级树 END -->
+
+<!-- 自定义报表 数据查询  START -->
+	<!-- 创建临时表 START -->
+	<update id="createTempCbsDwmcOne">
+		create table cbs_dwmc_one as 
+		select c.jrjgbm,c.br_no_one,c.dwmc
+		from(
+		select b.jrjgbm,a.br_no_one,' ' dwmc
+		from hbjyods.jrjgxx_tmp a
+		inner join hbjyods.jrjgxx b
+		on a.br_no_two=b.br_no)c
+		group by c.jrjgbm,c.br_no_one,c.dwmc
+	</update>
+	<update id="createTempcbsDwmcTwo">
+		create table cbs_dwmc_two as 
+		select c.jrjgbm,c.br_no_two,c.dwmc
+		from(
+		select b.jrjgbm,a.br_no_two,case when b.jrjgmc like '%农商行%' then 'A05'
+		       when b.jrjgmc like '%信用社%' then 'A07'  else ' ' end as dwmc
+		from hbjyods.jrjgxx_tmp a
+		inner join hbjyods.jrjgxx b
+		on a.br_no_two=b.br_no)c
+		group by c.jrjgbm,c.br_no_two,c.dwmc
+	</update>
+	<update id="createTempCbsDwmcThree">
+		create table cbs_dwmc_three as 
+		select c.jrjgbm,c.br_no_three,c.dwmc
+		from(
+		select b.jrjgbm,a.br_no_three,case when b.jrjgmc like '%农商行%' then 'A05'
+		       when b.jrjgmc like '%信用社%' then 'A07'  else ' ' end as dwmc
+		from hbjyods.jrjgxx_tmp a
+		inner join hbjyods.jrjgxx b
+		on a.br_no_three=b.br_no)c
+		group by c.jrjgbm,c.br_no_three,c.dwmc
+	</update>
+	<!-- 创建临时表 END -->
+	
+	<!-- 删除临时表 START -->
+	<update id="dropTempCbsDwmcOne">
+		drop table cbs_dwmc_one
+	</update>
+	<update id="dropTempcbsDwmcTwo">
+		drop table cbs_dwmc_two
+	</update>
+	<update id="dropTempCbsDwmcThree">
+		drop table cbs_dwmc_three
+	</update>
+	<!-- 删除临时表 END -->
+	
+	<!-- 获取三级金融机构编码 -->
+	<sql id="getOrgThree">
+		<foreach item="item" index="index" collection="nbjgh_three"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	<!-- 获取二级金融机构编码 -->
+	<sql id="getOrgTwo">
+		<foreach item="item" index="index" collection="nbjgh_two"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	<!-- 获取一级金融机构编码 -->
+	<sql id="getOrgOne">
+		<foreach item="item" index="index" collection="nbjgh_one"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	
+	<!-- 获取查询条件：企业规模 -->
+	<sql id="getQygm">
+		<foreach item="item" index="index" collection="filterqygm_root"   
+                      open="(" separator="or" close=")">  
+                     xjfw.qygm_${item} = '1'   
+             </foreach> 
+	</sql>
+	
+	<!-- 获取客户类型 -->
+	<sql id="getCust">
+		<foreach item="item" index="index" collection="filtercust_root"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	
+	<!-- 获取币种 -->
+	<sql id="getCoin">
+		<foreach item="item" index="index" collection="filtercoin_root"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	
+	<!-- 获取贷款主体行业类别 -->
+	<sql id="getHylb">
+		<foreach item="item" index="index" collection="filterhylb_root"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	
+	<!-- 获取金融机构地区编码 -->
+	<sql id="getArea">
+		<foreach item="item" index="index" collection="filterarea_root"   
+                      open="(" separator="," close=")">  
+                     #{item, jdbcType=VARCHAR}  
+             </foreach> 
+	</sql>
+	
+	<!-- 参数：【sjrq】:指定季度的之后月份的第一天;【nbjgh_one】:一级金融机构内部机构号;【nbjgh_two】:二级金融机构内部机构号;【nbjgh_three】:三级金融机构内部机构号; -->
+	<select id="getCbs_bdpal" resultType="Map" parameterType="map">
+		<!-- 有金融机构过滤 或 显示金融机构维度 时执行 -->
+		select * from (
+		<if test="(filterorg_root != null and filterorg_root.size() > 0 and nbjgh_three != null and nbjgh_three.size() > 0) or ((filterorg_root == null or filterorg_root.size() == 0) and (org_root =='yes' or area_root =='yes' or qygm_root =='yes'))">
+	 		select 
+		       <if test="sjrq_root =='yes' ">concat(concat(substr(#{sjrq},1,4),'Q'),trunc((to_number(substr(#{sjrq},5,2))-1)/3)) as "数据日期",</if><!--数据日期(指定季度) -->
+		       <if test="org_root =='yes' ">nvl(f.jrjgbm,'--') as jrjgbm,</if>
+		       <if test="org_root =='yes' ">nvl(e.br_no_three,'--') as nbjgh,</if>
+			   <if test="org_root =='yes' ">nvl(f.jrjgmc,'--') as "金融机构",</if>
+		       <if test="area_root =='yes' ">nvl(area.code_key,'000001') as dqdm,</if>
+			   <if test="area_root =='yes' ">nvl(area.code_value,'省外') as "金融机构地区",</if>
+			   <if test="qygm_root =='yes' ">case when xjfw.qygm_1 = '1' then '500万元以下' when xjfw.qygm_2 = '1' then '500-1000万元' when xjfw.qygm_3 = '1' then '1000-3000万元' when xjfw.qygm_4 = '1' then '3000万元以上' else '--' end as "企业规模",</if>
+			   <if test="coin_root =='yes' ">case e.acccur when '01' then '人民币' else '--' end as "币种",</if><!-- 币种 -->
+			   <if test="hylb_root =='yes' ">nvl(e.hylbmc,'--') as "贷款主体行业类别",</if>
+		       <if test="cust_root =='yes' ">nvl(e.value,'--') as "客户类型",</if>
+		       <if test="value_root == 'yes' or JEBJDZC =='yes' ">sum(e.jebjdzc) as "本季度支出金额（元）",</if>
+		       <if test="value_root == 'yes' or JEBJDSR =='yes' ">sum(e.jebjdsr) as "本季度收入金额（元）",</if>
+		       <if test="value_root == 'yes' or JENLJZC =='yes' ">sum(e.jenljzc) as "年累计支出金额（元）",</if>
+		       <if test="value_root == 'yes' or JENLJSR =='yes' ">sum(e.jenljsr) as "年累计收入金额（元）",</if>
+		       <if test="value_root == 'yes' or TBZJBJDZC =='yes' ">sum(e.tbzjbjdzc) as "本季度支出同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBZJBJDSR =='yes' ">sum(e.tbzjbjdsr) as "本季度收入同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBZJNLJZC =='yes' ">sum(e.tbzjnljzc) as "年累计支出同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBZJNLJSR =='yes' ">sum(e.tbzjnljsr) as "年累计收入同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBBHBJDZC =='yes' ">sum(e.tbbhbjdzc) as "本季度支出同比变化（%）",</if>
+		       <if test="value_root == 'yes' or TBBHBJDSR =='yes' ">sum(e.tbbhbjdsr) as "本季度收入同比变化（%）",</if>
+		       <if test="value_root == 'yes' or TBBHNLJZC =='yes' ">sum(e.tbbhnljzc) as "年累计支出同比变化（%）",</if>
+		       <if test="value_root == 'yes' or TBBHNLJSR =='yes' ">sum(e.tbbhnljsr) as "年累计收入同比变化（%）",</if>
+		       <if test="value_root == 'yes' or ZBBJDZC =='yes' ">sum(e.zbbjdzc) as "本季度支出占比（%）",</if>
+		       <if test="value_root == 'yes' or ZBBJDSR =='yes' ">sum(e.zbbjdsr) as "本季度收入占比（%）",</if>
+		       <if test="value_root == 'yes' or ZBNLJZC =='yes' ">sum(e.zbnljzc) as "年累计支出占比（%）",</if>
+		       <if test="value_root == 'yes' or ZBNLJSR =='yes' ">sum(e.zbnljsr) as "年累计收入占比（%）",</if>
+		      '3' as sblx
+			from(
+			  select 
+			    <if test="coin_root =='yes'">c.acccur,</if><!-- 币种 -->
+			    <if test="hylb_root =='yes'">c.hylbmc,</if><!-- 贷款主体行业类别 -->
+			    <if test="cust_root =='yes'">c.value,</if><!-- 客户细分类型 -->
+				<if test="value_root == 'yes' or JEBJDZC =='yes' ">sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc) as jebjdzc,</if>
+				<if test="value_root == 'yes' or JEBJDSR =='yes' ">sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr) as jebjdsr,</if>
+				<if test="value_root == 'yes' or JENLJZC =='yes' ">sum(c.nljdgzc)+sum(c.nljgmzc)+sum(c.nljzsbzc) as jenljzc,</if>
+				<if test="value_root == 'yes' or JENLJSR =='yes' ">sum(c.nljdgsr)+sum(c.nljgmsr)+sum(c.nljzsbsr) as jenljsr,</if>
+				<if test="value_root == 'yes' or TBZJBJDZC =='yes' ">sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)-(sum(c.qntjddgzc)+sum(c.qntjdgmzc)+sum(c.qntjdzsbzc)) as tbzjbjdzc,</if>
+				<if test="value_root == 'yes' or TBZJBJDSR =='yes' ">sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)-(sum(c.qntjddgsr)+sum(c.qntjdgmsr)+sum(c.qntjdzsbsr)) as tbzjbjdsr,</if>
+				<if test="value_root == 'yes' or TBZJNLJZC =='yes' ">sum(c.nljdgzc)+sum(c.nljgmzc)+sum(c.nljzsbzc)-(sum(c.nljqndgzc)+sum(c.nljqngmzc)+sum(c.nljqnzsbzc)) as tbzjnljzc,</if>
+				<if test="value_root == 'yes' or TBZJNLJSR =='yes' ">sum(c.nljdgsr)+sum(c.nljgmsr)+sum(c.nljzsbsr)-(sum(c.nljqndgsr)+sum(c.nljqngmsr)+sum(c.nljqnzsbsr)) as tbzjnljsr,</if>
+				<if test="value_root == 'yes' or TBBHBJDZC =='yes' ">case (sum(c.qntjddgzc)+sum(c.qntjdgmzc)+sum(c.qntjdzsbzc)) when 0 then 0 else round((sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)-(sum(c.qntjddgzc)+sum(c.qntjdgmzc)+sum(c.qntjdzsbzc)))/(sum(c.qntjddgzc)+sum(c.qntjdgmzc)+sum(c.qntjdzsbzc)),2) end as tbbhbjdzc,</if>
+				<if test="value_root == 'yes' or TBBHBJDSR =='yes' ">case (sum(c.qntjddgsr)+sum(c.qntjdgmsr)+sum(c.qntjdzsbsr)) when 0 then 0 else round((sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)-(sum(c.qntjddgsr)+sum(c.qntjdgmsr)+sum(c.qntjdzsbsr)))/(sum(c.qntjddgsr)+sum(c.qntjdgmsr)+sum(c.qntjdzsbsr)),2) end as tbbhbjdsr,</if>
+				<if test="value_root == 'yes' or TBBHNLJZC =='yes' ">case (sum(c.nljqndgzc)+sum(c.nljqngmzc)+sum(c.nljqnzsbzc)) when 0 then 0 else round((sum(c.nljdgzc)+sum(c.nljgmzc)+sum(c.nljzsbzc)-(sum(c.nljqndgzc)+sum(c.nljqngmzc)+sum(c.nljqnzsbzc)))/(sum(c.nljqndgzc)+sum(c.nljqngmzc)+sum(c.nljqnzsbzc)),2)end as tbbhnljzc,</if>
+				<if test="value_root == 'yes' or TBBHNLJSR =='yes' ">case (sum(c.nljqndgsr)+sum(c.nljqngmsr)+sum(c.nljqnzsbsr)) when 0 then 0 else round((sum(c.nljdgsr)+sum(c.nljgmsr)+sum(c.nljzsbsr)-(sum(c.nljqndgsr)+sum(c.nljqngmsr)+sum(c.nljqnzsbsr)))/(sum(c.nljqndgsr)+sum(c.nljqngmsr)+sum(c.nljqnzsbsr)),2)end as tbbhnljsr,</if>
+				<if test="value_root == 'yes' or ZBBJDZC =='yes' ">case (sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)+sum(c.tyjzc)) when 0 then 0 else round((sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc))/(sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)+sum(c.tyjzc)),2) end as zbbjdzc,</if>
+				<if test="value_root == 'yes' or ZBBJDSR =='yes' ">case (sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)+sum(c.tyjsr)) when 0 then 0 else round((sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr))/(sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)+sum(c.tyjsr)),2) end as zbbjdsr,</if>
+				<if test="value_root == 'yes' or ZBNLJZC =='yes' ">case (sum(c.nljdgzc)+sum(c.nljgmzc)+sum(c.nljzsbzc)+sum(c.nljtyjzc))when 0 then 0 else round((sum(c.nljdgzc)+sum(c.nljgmzc)+sum(c.nljzsbzc))/(sum(c.nljdgzc)+sum(c.nljgmzc)+sum(c.nljzsbzc)+sum(c.nljtyjzc)),2)end as zbnljzc,</if>
+				<if test="value_root == 'yes' or ZBNLJSR =='yes' ">case (sum(c.nljdgsr)+sum(c.nljgmsr)+sum(c.NLJZSBSR)+sum(c.nljtyjsr))when 0 then 0 else round((sum(c.nljdgsr)+sum(c.nljgmsr)+sum(c.NLJZSBSR))/(sum(c.nljdgsr)+sum(c.nljgmsr)+sum(c.nljzsbsr)+sum(c.nljtyjsr)),2)end as zbnljsr,</if>
+			    d.br_no_three
+			  from(
+			    select a.yngyjg,
+			    <if test="coin_root =='yes'">adpxx.acccur,</if><!-- 币种 -->
+			    <if test="cust_root =='yes'">mcode.value,</if><!-- 客户细分类型 -->
+			    <if test="hylb_root =='yes'">case when hylb.code_value is null then '' else hylb.code_value end as hylbmc,</if><!-- 贷款主体行业类别 -->
+			    <!-- 对公收入本季度 -->
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as dgsr,
+			    <!-- 对公收入去年同季度 -->  
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as qntjddgsr,  
+			    <!-- 对公收入年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as nljdgsr,  
+			    <!-- 对公收入去年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as nljqndgsr,    
+			    <!-- 对公支出本季度 -->
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as dgzc,
+			    <!-- 对公支出去年同季度 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as qntjddgzc,
+			    <!-- 对公支出年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljdgzc,
+			    <!-- 对公支出去年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljqndgzc,
+			    <!-- 柜面收入本季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as gmsr,
+			    <!-- 柜面收入去年同季度 --> 
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as qntjdgmsr,
+			    <!-- 柜面收入年累计 --> 
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljgmsr,
+			    <!-- 柜面收入去年累计 --> 
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as nljqngmsr,
+			    <!-- 柜面支出本季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as gmzc,
+			    <!-- 柜面支出去年同季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as qntjdgmzc,
+			    <!-- 柜面支出年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as nljgmzc,
+			    <!-- 柜面支出去年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as nljqngmzc, 
+			    <!-- 自助设备收入 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as zsbsr,
+			    <!-- 自助设备收入去年同季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as qntjdzsbsr,
+			    <!-- 自助设备收入年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as "NLJZSBSR",
+			    <!-- 自助设备收入去年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljqnzsbsr,     
+			    <!-- 自助设备支出本季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(a.TRAAMT) end,0) as zsbzc, 
+			    <!-- 自助设备支出去年同季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as qntjdzsbzc,
+			    <!-- 自助设备支出年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljzsbzc,
+			    <!-- 自助设备支出去年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljqnzsbzc,  
+			    <!-- 同业间现金存入本季度 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as tyjsr,
+			    <!-- 同业间现金存入年累计 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljtyjsr,       
+			    <!-- 同业间现金支出本季度 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as tyjzc,
+			    <!-- 同业间现金支出年累计 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(a.TRAAMT) end,0) as nljtyjzc
+			    from hbjyods.cbs_bdpal a
+			    <if test="coin_root =='yes' or hylb_root =='yes' or cust_root =='yes'">
+				    inner join hbjyods.cbs_adpxx adpxx on 
+				    	<if test="filtercoin_root != null and filtercoin_root.size() > 0">
+					    	adpxx.acccur in <include refid="getCoin"/> and <!-- 币种过滤 -->
+				    	</if>
+				    	<if test="filterhylb_root != null and filterhylb_root.size() > 0">
+					    	adpxx.cunkzl in <include refid="getHylb"/> and  <!-- 贷款主体行业类别过滤 -->
+					    </if>
+					    adpxx.dpacno = a.dpacno
+					<if test="hylb_root =='yes'">
+				    	left join code_hylb hylb on concat('A',adpxx.cunkzl) = hylb.code_key
+					</if>
+			    </if>
+			    <if test="cust_root =='yes'">
+					<!-- 客户类型类似于00_01，前两位数(00-同业;01-对私;02-对公;)与字段a.prcls1(1-对私；2-对公；3-同业；)对应，最后两位数与字段cust.cust_subtype对应 -->
+					inner join hbjyods.cbs_m_org_cust cust on 
+						<if test="filtercust_root != null and filtercust_root.size() > 0">
+							concat('0',concat(case a.prcls1 when '3' then '0' else a.prcls1 end,concat('_',cust.cust_subtype))) in <include refid="getCust"/> and <!-- 客户细分类型('00_01') -->
+						</if>
+						cust.cust_no = adpxx.cusnum 
+		    		left join m_code mcode on ((a.prcls1 = '1' and mcode.code = 'ETYP35') or (a.prcls1 = '2' and mcode.code = 'ETYP36') or (a.prcls1 = '3' and mcode.code = 'ETYP37')) and cust.cust_subtype = mcode.key
+			    </if>
+			    where xzjdbz='0' 
+			    group by 
+				    a.yngyjg,
+				    a.prcls1,
+				    a.jiedbz,
+				    a.jioyrq,
+				    a.qudaoo,
+				    <if test="coin_root =='yes'">adpxx.acccur,</if>
+				    <if test="hylb_root =='yes'">hylb.code_value,</if>
+				    <if test="cust_root =='yes'">mcode.value,</if>
+				    1)c
+			  inner join hbjyods.jrjgxx_tmp d
+			  on substr(c.yngyjg,0,5)=substr(d.br_no_three,0,5)
+			  group by 
+				  d.br_no_three,
+				  <if test="coin_root =='yes'">c.acccur,</if>
+				  <if test="hylb_root =='yes'">c.hylbmc,</if>
+				  <if test="cust_root =='yes'">c.value,</if>
+				  1)e
+			<if test="org_root == 'yes' or area_root == 'yes' or qygm_root == 'yes'">
+				inner join hbjyods.jrjgxx f
+				on 
+				<if test="nbjgh_three != null and nbjgh_three.size() > 0">
+					f.br_no in <include refid="getOrgThree"/> and
+				</if>
+				<if test="filterarea_root != null and filterarea_root.size() > 0">
+					f.dqdm in <include refid="getArea"/> and
+				</if> 
+				e.br_no_three=f.br_no<!-- 金融机构、金融机构地区过滤 -->
+				<if test="area_root == 'yes'">
+					left join CODE_DQMB area
+					on area.code_key = f.dqdm
+				</if>
+			</if>
+			<if test="qygm_root == 'yes'">
+				inner join SYYH_XJFW xjfw on 
+				<if test="filterqygm_root != null and filterqygm_root.size() > 0">
+<!-- 					(xjfw.qygm_1 = '1' or xjfw.qygm_2 = '1' or xjfw.qygm_3 = '1' or xjfw.qygm_4 = '1') -->
+					 <include refid="getQygm"/>and
+				</if>
+				xjfw.nbjgh = f.br_no <!-- 企业规模过滤 -->
+			</if>
+			inner join cbs_dwmc_three g
+			on e.br_no_three=g.br_no_three
+			group by 
+				<if test="org_root =='yes'">f.jrjgbm,e.br_no_three,f.jrjgmc,</if>
+				<if test="area_root =='yes'">area.code_key,area.code_value,</if>
+				<if test="qygm_root =='yes'">xjfw.qygm_1,xjfw.qygm_2,xjfw.qygm_3,xjfw.qygm_4,</if>
+				<if test="coin_root =='yes'">e.acccur,</if>
+				<if test="hylb_root =='yes'">e.hylbmc,</if>
+				<if test="cust_root =='yes'">e.value,</if>
+				1
+			union all 
+		</if>
+
+		<!-- 有金融机构过滤 或 显示金融机构维度 时执行 -->
+		<if test="(filterorg_root != null and filterorg_root.size() > 0 and nbjgh_two != null and nbjgh_two.size() > 0) or ((filterorg_root == null or filterorg_root.size() == 0) and (org_root =='yes' or area_root =='yes' or qygm_root =='yes'))">
+			select 
+			   <if test="sjrq_root =='yes' ">concat(concat(substr(#{sjrq},1,4),'Q'),trunc((to_number(substr(#{sjrq},5,2))-1)/3)) as "数据日期",</if><!--数据日期(指定季度) -->
+			   <if test="org_root =='yes' ">nvl(f.jrjgbm,'--') as jrjgbm,</if>
+			   <if test="org_root =='yes' ">nvl(e.br_no_two,'--') as nbjgh,</if>
+			   <if test="org_root =='yes' ">nvl(f.jrjgmc,'--') as "金融机构",</if>
+			   <if test="area_root =='yes' ">nvl(area.code_key,'000001') as dqdm,</if>
+			   <if test="area_root =='yes' ">nvl(area.code_value,'省外') as "金融机构地区",</if>
+			   <if test="qygm_root =='yes' ">case when xjfw.qygm_1 = '1' then '500万元以下' when xjfw.qygm_2 = '1' then '500-1000万元' when xjfw.qygm_3 = '1' then '1000-3000万元' when xjfw.qygm_4 = '1' then '3000万元以上' else '--' end as "企业规模",</if>
+			   <if test="coin_root =='yes' ">case e.acccur when '01' then '人民币' else '--' end as "币种",</if>
+			   <if test="hylb_root =='yes' ">nvl(e.hylbmc,'--') as "贷款主体行业类别",</if>
+		       <if test="cust_root =='yes' ">nvl(e.value,'--') as "客户类型",</if>
+		       <if test="value_root == 'yes' or JEBJDZC =='yes' ">sum(e.jebjdzc) as "本季度支出金额（元）",</if>
+		       <if test="value_root == 'yes' or JEBJDSR =='yes' ">sum(e.jebjdsr) as "本季度收入金额（元）",</if>
+		       <if test="value_root == 'yes' or JENLJZC =='yes' ">sum(e.jenljzc) as "年累计支出金额（元）",</if>
+		       <if test="value_root == 'yes' or JENLJSR =='yes' ">sum(e.jenljsr) as "年累计收入金额（元）",</if>
+		       <if test="value_root == 'yes' or TBZJBJDZC =='yes' ">sum(e.tbzjbjdzc) as "本季度支出同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBZJBJDSR =='yes' ">sum(e.tbzjbjdsr) as "本季度收入同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBZJNLJZC =='yes' ">sum(e.tbzjnljzc) as "年累计支出同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBZJNLJSR =='yes' ">sum(e.tbzjnljsr) as "年累计收入同比增减（元）",</if>
+		       <if test="value_root == 'yes' or TBBHBJDZC =='yes' ">sum(e.tbbhbjdzc) as "本季度支出同比变化（%）",</if>
+		       <if test="value_root == 'yes' or TBBHBJDSR =='yes' ">sum(e.tbbhbjdsr) as "本季度收入同比变化（%）",</if>
+		       <if test="value_root == 'yes' or TBBHNLJZC =='yes' ">sum(e.tbbhnljzc) as "年累计支出同比变化（%）",</if>
+		       <if test="value_root == 'yes' or TBBHNLJSR =='yes' ">sum(e.tbbhnljsr) as "年累计收入同比变化（%）",</if>
+		       <if test="value_root == 'yes' or ZBBJDZC =='yes' ">sum(e.zbbjdzc) as "本季度支出占比（%）",</if>
+		       <if test="value_root == 'yes' or ZBBJDSR =='yes' ">sum(e.zbbjdsr) as "本季度收入占比（%）",</if>
+		       <if test="value_root == 'yes' or ZBNLJZC =='yes' ">sum(e.zbnljzc) as "年累计支出占比（%）",</if>
+		       <if test="value_root == 'yes' or ZBNLJSR =='yes' ">sum(e.zbnljsr) as "年累计收入占比（%）",</if>
+			  '2' as sblx
+			from(
+			  select 
+			  	<if test="coin_root =='yes'">c.acccur,</if><!-- 币种 -->
+			    <if test="hylb_root =='yes'">c.hylbmc,</if><!-- 贷款主体行业类别 -->
+			    <if test="cust_root =='yes'">c.value,</if><!-- 客户细分类型 -->
+				<if test="value_root == 'yes' or JEBJDZC =='yes' ">sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc) as jebjdzc,</if>
+				<if test="value_root == 'yes' or JEBJDSR =='yes' ">sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr) as jebjdsr,</if>
+				<if test="value_root == 'yes' or JENLJZC =='yes' ">sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc) as jenljzc,</if>
+				<if test="value_root == 'yes' or JENLJSR =='yes' ">sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr) as jenljsr,</if>
+				<if test="value_root == 'yes' or TBZJBJDZC =='yes' ">sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)-(sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)) as tbzjbjdzc,</if>
+				<if test="value_root == 'yes' or TBZJBJDSR =='yes' ">sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)-(sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)) as tbzjbjdsr,</if>
+				<if test="value_root == 'yes' or TBZJNLJZC =='yes' ">sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)-(sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)) as tbzjnljzc,</if>
+				<if test="value_root == 'yes' or TBZJNLJSR =='yes' ">sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)-(sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)) as tbzjnljsr,</if>
+				<if test="value_root == 'yes' or TBBHBJDZC =='yes' ">case (sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)) when 0 then 0 else round((sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)-(sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)))/(sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)),2) end as tbbhbjdzc,</if>
+				<if test="value_root == 'yes' or TBBHBJDSR =='yes' ">case (sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)) when 0 then 0 else round((sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)-(sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)))/(sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)),2) end as tbbhbjdsr,</if>
+				<if test="value_root == 'yes' or TBBHNLJZC =='yes' ">case (sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)) when 0 then 0 else round((sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)-(sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)))/(sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)),2)end as tbbhnljzc,</if>
+				<if test="value_root == 'yes' or TBBHNLJSR =='yes' ">case (sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)) when 0 then 0 else round((sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)-(sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)))/(sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)),2)end as tbbhnljsr,</if>
+				<if test="value_root == 'yes' or ZBBJDZC =='yes' ">case (sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)+sum(c.tyjzc)) when 0 then 0 else round((sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc))/(sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)+sum(c.tyjzc)),2) end as zbbjdzc,</if>
+				<if test="value_root == 'yes' or ZBBJDSR =='yes' ">case (sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)+sum(c.tyjsr)) when 0 then 0 else round((sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr))/(sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)+sum(c.tyjsr)),2) end as zbbjdsr,</if>
+				<if test="value_root == 'yes' or ZBNLJZC =='yes' ">case (sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)+sum(c.nlj_tyjzc))when 0 then 0 else round((sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc))/(sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)+sum(c.nlj_tyjzc)),2)end as zbnljzc,</if>
+				<if test="value_root == 'yes' or ZBNLJSR =='yes' ">case (sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)+sum(c.nlj_tyjsr))when 0 then 0 else round((sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr))/(sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)+sum(c.nlj_tyjsr)),2)end as zbnljsr,</if>
+			    d.br_no_two
+			  from(
+			    select a.yngyjg,
+			    <if test="coin_root =='yes'">adpxx.acccur,</if><!-- 币种 -->
+			    <if test="cust_root =='yes'">mcode.value,</if><!-- 客户细分类型 -->
+			    <if test="hylb_root =='yes'">case when hylb.code_value is null then '' else hylb.code_value end as hylbmc,</if><!-- 贷款主体行业类别 -->
+			    <!-- 对公收入本季度 -->
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as dgsr,
+			    <!-- 对公收入去年同季度 -->  
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as qn_tjd_dgsr,  
+			    <!-- 对公收入年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_dgsr,  
+			    <!-- 对公收入去年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_qn_dgsr,    
+			    <!-- 对公支出本季度 -->
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as dgzc,
+			    <!-- 对公支出去年同季度 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_dgzc,
+			    <!-- 对公支出年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_dgzc,
+			    <!-- 对公支出去年累计 --> 
+			    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_qn_dgzc,
+			    <!-- 柜面收入本季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as gmsr,
+			    <!-- 柜面收入去年同季度 --> 
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_gmsr,
+			    <!-- 柜面收入年累计 --> 
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_gmsr,
+			    <!-- 柜面收入去年累计 --> 
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_qn_gmsr,
+			    <!-- 柜面支出本季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as gmzc,
+			    <!-- 柜面支出去年同季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_gmzc,
+			    <!-- 柜面支出年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_gmzc,
+			    <!-- 柜面支出去年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_qn_gmzc, 
+			    <!-- 自助设备收入 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as zsbsr,
+			    <!-- 自助设备收入去年同季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as qn_tjd_zsbsr,
+			    <!-- 自助设备收入年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_zsbsr,
+			    <!-- 自助设备收入去年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_qn_zsbsr,     
+			    <!-- 自助设备支出本季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as zsbzc, 
+			    <!-- 自助设备支出去年同季度 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_zsbzc,
+			    <!-- 自助设备支出年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_zsbzc,
+			    <!-- 自助设备支出去年累计 -->
+			    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_qn_zsbzc,  
+			    <!-- 同业间现金存入本季度 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as tyjsr,
+			    <!-- 同业间现金存入年累计 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_tyjsr,       
+			    <!-- 同业间现金支出本季度 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as tyjzc,
+			    <!-- 同业间现金支出年累计 -->
+			    nvl(case when a.prcls1='3' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_tyjzc
+			    from hbjyods.cbs_bdpal a
+			    <if test="coin_root =='yes' or hylb_root =='yes' or cust_root =='yes'">
+				    inner join hbjyods.cbs_adpxx adpxx on 
+				    	<if test="filtercoin_root != null and filtercoin_root.size() > 0">
+					    	adpxx.acccur in <include refid="getCoin"/> and <!-- 币种过滤 -->
+				    	</if>
+				    	<if test="filterhylb_root != null and filterhylb_root.size() > 0">
+					    	adpxx.cunkzl in <include refid="getHylb"/> and  <!-- 贷款主体行业类别过滤 -->
+					    </if>
+					    adpxx.dpacno = a.dpacno
+					<if test="hylb_root =='yes'">
+				    	left join code_hylb hylb on concat('A',adpxx.cunkzl) = hylb.code_key
+					</if>
+			    </if>
+			    <if test="cust_root =='yes'">
+					<!-- 客户类型类似于00_01，前两位数(00-同业;01-对私;02-对公;)与字段a.prcls1(1-对私；2-对公；3-同业；)对应，最后两位数与字段cust.cust_subtype对应 -->
+					inner join hbjyods.cbs_m_org_cust cust on 
+						<if test="filtercust_root != null and filtercust_root.size() > 0">
+							concat('0',concat(case a.prcls1 when '3' then '0' else a.prcls1 end,concat('_',cust.cust_subtype))) in <include refid="getCust"/> and <!-- 客户细分类型('00_01') -->
+						</if>
+						cust.cust_no = adpxx.cusnum 
+		    		left join m_code mcode on ((a.prcls1 = '1' and mcode.code = 'ETYP35') or (a.prcls1 = '2' and mcode.code = 'ETYP36') or (a.prcls1 = '3' and mcode.code = 'ETYP37')) and cust.cust_subtype = mcode.key
+			    </if>
+			    where xzjdbz='0' 
+			    group by 
+				    a.yngyjg,
+				    a.prcls1,
+				    a.jiedbz,
+				    a.jioyrq,
+				    a.qudaoo,
+				    <if test="coin_root =='yes'">adpxx.acccur,</if>
+					<if test="hylb_root =='yes'">hylb.code_value,</if>
+				    <if test="cust_root =='yes'">mcode.value,</if>
+				    1)c
+			  inner join hbjyods.jrjgxx_tmp d
+			  on substr(c.yngyjg,0,4)=substr(d.br_no_two,0,4)
+			  group by 
+				  d.br_no_two,
+				  <if test="coin_root =='yes'">c.acccur,</if>
+				  <if test="hylb_root =='yes'">c.hylbmc,</if>
+				  <if test="cust_root =='yes'">c.value,</if>
+				  1)e
+			<if test="org_root == 'yes'  or area_root == 'yes' or qygm_root == 'yes'">
+				inner join hbjyods.jrjgxx f
+				on 
+				<if test="nbjgh_two != null and nbjgh_two.size() > 0">
+					f.br_no in <include refid="getOrgTwo"/> and
+				</if>
+				<if test="filterarea_root != null and filterarea_root.size() > 0">
+					f.dqdm in <include refid="getArea"/> and
+				</if> 
+				e.br_no_two=f.br_no<!-- 金融机构、金融机构地区过滤 -->
+				<if test="area_root == 'yes'">
+					left join CODE_DQMB area
+					on area.code_key = f.dqdm
+				</if>
+			</if>
+			<if test="qygm_root == 'yes'">
+				inner join SYYH_XJFW xjfw on 
+				<if test="filterqygm_root != null and filterqygm_root.size() > 0">
+<!-- 					(xjfw.qygm_1 = '1' or xjfw.qygm_2 = '1' or xjfw.qygm_3 = '1' or xjfw.qygm_4 = '1') -->
+					 <include refid="getQygm"/>and
+				</if>
+				 xjfw.nbjgh = f.br_no <!-- 企业规模过滤 -->
+			</if>
+			inner join cbs_dwmc_two g
+			on e.br_no_two=g.br_no_two
+			group by 
+				<if test="org_root =='yes' ">f.jrjgbm,e.br_no_two,f.jrjgmc,</if>
+				<if test="area_root =='yes' ">area.code_key,area.code_value,</if>
+				<if test="qygm_root =='yes' ">xjfw.qygm_1,xjfw.qygm_2,xjfw.qygm_3,xjfw.qygm_4,</if>
+				<if test="coin_root =='yes' ">e.acccur,</if>
+				<if test="hylb_root =='yes' ">e.hylbmc,</if>
+				<if test="cust_root =='yes' ">e.value,</if>
+				1
+			union all
+		</if>
+		
+		<!-- 有金融机构过滤 时执行 -->
+		<choose>
+			<when test="(filterorg_root != null and filterorg_root.size() > 0 and nbjgh_one != null and nbjgh_one.size() > 0) or (filterorg_root == null or filterorg_root.size() == 0)">
+				select 
+				   <if test="sjrq_root =='yes' ">concat(concat(substr(#{sjrq},1,4),'Q'),trunc((to_number(substr(#{sjrq},5,2))-1)/3)) as "数据日期",</if><!--数据日期(指定季度) -->
+				   <if test="org_root =='yes' ">nvl(e.jrjgbm,'--') as jrjgbm,</if>
+				   <if test="org_root =='yes' ">nvl(e.br_no,'--') as nbjgh,</if>
+				   <if test="org_root =='yes' ">nvl(e.jrjgmc,'--') as "金融机构",</if>
+				   <if test="area_root =='yes' ">nvl(area.code_key,'000001') as dqdm,</if>
+				   <if test="area_root =='yes' ">nvl(area.code_value,'省外') as "金融机构地区",</if>
+				   <if test="qygm_root =='yes' ">case when xjfw.qygm_1 = '1' then '500万元以下' when xjfw.qygm_2 = '1' then '500-1000万元' when xjfw.qygm_3 = '1' then '1000-3000万元' when xjfw.qygm_4 = '1' then '3000万元以上' else '--' end as "企业规模",</if>
+				   <if test="coin_root =='yes' ">case d.acccur when '01' then '人民币' else '--' end as "币种",</if>
+				   <if test="hylb_root =='yes' ">nvl(d.hylbmc,'--') as "贷款主体行业类别",</if>
+			       <if test="cust_root =='yes' ">nvl(d.value,'--') as "客户类型",</if>
+			       <if test="value_root == 'yes' or JEBJDZC =='yes' ">sum(d.jebjdzc) as "本季度支出金额（元）",</if>
+			       <if test="value_root == 'yes' or JEBJDSR =='yes' ">sum(d.jebjdsr) as "本季度收入金额（元）",</if>
+			       <if test="value_root == 'yes' or JENLJZC =='yes' ">sum(d.jenljzc) as "年累计支出金额（元）",</if>
+			       <if test="value_root == 'yes' or JENLJSR =='yes' ">sum(d.jenljsr) as "年累计收入金额（元）",</if>
+			       <if test="value_root == 'yes' or TBZJBJDZC =='yes' ">sum(d.tbzjbjdzc) as "本季度支出同比增减（元）",</if>
+			       <if test="value_root == 'yes' or TBZJBJDSR =='yes' ">sum(d.tbzjbjdsr) as "本季度收入同比增减（元）",</if>
+			       <if test="value_root == 'yes' or TBZJNLJZC =='yes' ">sum(d.tbzjnljzc) as "年累计支出同比增减（元）",</if>
+			       <if test="value_root == 'yes' or TBZJNLJSR =='yes' ">sum(d.tbzjnljsr) as "年累计收入同比增减（元）",</if>
+			       <if test="value_root == 'yes' or TBBHBJDZC =='yes' ">sum(d.tbbhbjdzc) as "本季度支出同比变化（%）",</if>
+			       <if test="value_root == 'yes' or TBBHBJDSR =='yes' ">sum(d.tbbhbjdsr) as "本季度收入同比变化（%）",</if>
+			       <if test="value_root == 'yes' or TBBHNLJZC =='yes' ">sum(d.tbbhnljzc) as "年累计支出同比变化（%）",</if>
+			       <if test="value_root == 'yes' or TBBHNLJSR =='yes' ">sum(d.tbbhnljsr) as "年累计收入同比变化（%）",</if>
+			       <if test="value_root == 'yes' or ZBBJDZC =='yes' ">sum(d.zbbjdzc) as "本季度支出占比（%）",</if>
+			       <if test="value_root == 'yes' or ZBBJDSR =='yes' ">sum(d.zbbjdsr) as "本季度收入占比（%）",</if>
+			       <if test="value_root == 'yes' or ZBNLJZC =='yes' ">sum(d.zbnljzc) as "年累计支出占比（%）",</if>
+			       <if test="value_root == 'yes' or ZBNLJSR =='yes' ">sum(d.zbnljsr) as "年累计收入占比（%）",</if>
+				   '1' as sblx
+				from(
+				  select 
+				  	<if test="coin_root =='yes'">c.acccur,</if><!-- 币种 -->
+				    <if test="hylb_root =='yes'">c.hylbmc,</if><!-- 贷款主体行业类别 -->
+				    <if test="cust_root =='yes'">c.value,</if><!-- 客户细分类型 -->
+					<if test="value_root == 'yes' or JEBJDZC =='yes' ">sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc) as jebjdzc,</if>
+					<if test="value_root == 'yes' or JEBJDSR =='yes' ">sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr) as jebjdsr,</if>
+					<if test="value_root == 'yes' or JENLJZC =='yes' ">sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc) as jenljzc,</if>
+					<if test="value_root == 'yes' or JENLJSR =='yes' ">sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr) as jenljsr,</if>
+					<if test="value_root == 'yes' or TBZJBJDZC =='yes' ">sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)-(sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)) as tbzjbjdzc,</if>
+					<if test="value_root == 'yes' or TBZJBJDSR =='yes' ">sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)-(sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)) as tbzjbjdsr,</if>
+					<if test="value_root == 'yes' or TBZJNLJZC =='yes' ">sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)-(sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)) as tbzjnljzc,</if>
+					<if test="value_root == 'yes' or TBZJNLJSR =='yes' ">sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)-(sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)) as tbzjnljsr,</if>
+					<if test="value_root == 'yes' or TBBHBJDZC =='yes' ">case (sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)) when 0 then 0 else round((sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)-(sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)))/(sum(c.qn_tjd_dgzc)+sum(c.qn_tjd_gmzc)+sum(c.qn_tjd_zsbzc)),2) end as tbbhbjdzc,</if>
+					<if test="value_root == 'yes' or TBBHBJDSR =='yes' ">case (sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)) when 0 then 0 else round((sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)-(sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)))/(sum(c.qn_tjd_dgsr)+sum(c.qn_tjd_gmsr)+sum(c.qn_tjd_zsbsr)),2) end as tbbhbjdsr,</if>
+					<if test="value_root == 'yes' or TBBHNLJZC =='yes' ">case (sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)) when 0 then 0 else round((sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)-(sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)))/(sum(c.nlj_qn_dgzc)+sum(c.nlj_qn_gmzc)+sum(c.nlj_qn_zsbzc)),2)end as tbbhnljzc,</if>
+					<if test="value_root == 'yes' or TBBHNLJSR =='yes' ">case (sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)) when 0 then 0 else round((sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)-(sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)))/(sum(c.nlj_qn_dgsr)+sum(c.nlj_qn_gmsr)+sum(c.nlj_qn_zsbsr)),2)end as tbbhnljsr,</if>
+					<if test="value_root == 'yes' or ZBBJDZC =='yes' ">case (sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)+sum(c.tyjzc)) when 0 then 0 else round((sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc))/(sum(c.dgzc)+sum(c.gmzc)+sum(c.zsbzc)+sum(c.tyjzc)),2) end as zbbjdzc,</if>
+					<if test="value_root == 'yes' or ZBBJDSR =='yes' ">case (sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)+sum(c.tyjsr)) when 0 then 0 else round((sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr))/(sum(c.dgsr)+sum(c.gmsr)+sum(c.zsbsr)+sum(c.tyjsr)),2) end as zbbjdsr,</if>
+					<if test="value_root == 'yes' or ZBNLJZC =='yes' ">case (sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)+sum(c.nlj_tyjzc))when 0 then 0 else round((sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc))/(sum(c.nlj_dgzc)+sum(c.nlj_gmzc)+sum(c.nlj_zsbzc)+sum(c.nlj_tyjzc)),2)end as zbnljzc,</if>
+					<if test="value_root == 'yes' or ZBNLJSR =='yes' ">case (sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)+sum(c.nlj_tyjsr))when 0 then 0 else round((sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr))/(sum(c.nlj_dgsr)+sum(c.nlj_gmsr)+sum(c.nlj_zsbsr)+sum(c.nlj_tyjsr)),2)end as zbnljsr,</if>
+				    '' as end_str <!-- 用于占位 -->
+				  from(
+				    select 
+				    <if test="coin_root =='yes'">adpxx.acccur,</if><!-- 币种 -->
+				    <if test="cust_root =='yes'">mcode.value,</if><!-- 客户细分类型 -->
+				    <if test="hylb_root =='yes'">case when hylb.code_value is null then '' else hylb.code_value end as hylbmc,</if><!-- 贷款主体行业类别 -->
+				    <!-- 对公收入本季度 -->
+				    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as dgsr,
+				    <!-- 对公收入去年同季度 -->  
+				    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as qn_tjd_dgsr,  
+				    <!-- 对公收入年累计 --> 
+				    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_dgsr,  
+				    <!-- 对公收入去年累计 --> 
+				    nvl(case when a.prcls1='2' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_qn_dgsr,    
+				    <!-- 对公支出本季度 -->
+				    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as dgzc,
+				    <!-- 对公支出去年同季度 --> 
+				    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_dgzc,
+				    <!-- 对公支出年累计 --> 
+				    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_dgzc,
+				    <!-- 对公支出去年累计 --> 
+				    nvl(case when a.prcls1='2' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_qn_dgzc,
+				    <!-- 柜面收入本季度 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as gmsr,
+				    <!-- 柜面收入去年同季度 --> 
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd')and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_gmsr,
+				    <!-- 柜面收入年累计 --> 
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_gmsr,
+				    <!-- 柜面收入去年累计 --> 
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_qn_gmsr,
+				    <!-- 柜面支出本季度 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd')and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as gmzc,
+				    <!-- 柜面支出去年同季度 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_gmzc,
+				    <!-- 柜面支出年累计 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_gmzc,
+				    <!-- 柜面支出去年累计 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='00' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_qn_gmzc, 
+				    <!-- 自助设备收入 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as zsbsr,
+				    <!-- 自助设备收入去年同季度 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then  sum(TRAAMT) end,0) as qn_tjd_zsbsr,
+				    <!-- 自助设备收入年累计 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as nlj_zsbsr,
+				    <!-- 自助设备收入去年累计 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_qn_zsbsr,     
+				    <!-- 自助设备支出本季度 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then  sum(TRAAMT) end,0) as zsbzc, 
+				    <!-- 自助设备支出去年同季度 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-15),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as qn_tjd_zsbzc,
+				    <!-- 自助设备支出年累计 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_zsbzc,
+				    <!-- 自助设备支出去年累计 -->
+				    nvl(case when a.prcls1='1' and a.qudaoo ='07' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),-12),'yyyymmdd') and to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-12),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_qn_zsbzc,  
+				    <!-- 同业间现金存入本季度 -->
+				    nvl(case when a.prcls1='3' and a.jiedbz ='1' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as tyjsr,
+				    <!-- 同业间现金存入年累计 -->
+				    nvl(case when a.prcls1='3' and a.jiedbz ='1' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_tyjsr,       
+				    <!-- 同业间现金支出本季度 -->
+				    nvl(case when a.prcls1='3' and a.jiedbz ='0' and (a.jioyrq between to_char(add_months(to_date(#{sjrq},'yyyymmdd'),-3),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as tyjzc,
+				    <!-- 同业间现金支出年累计 -->
+				    nvl(case when a.prcls1='3' and a.jiedbz ='0' and (a.jioyrq between to_char(trunc(to_date(#{sjrq},'yyyymmdd'),'yy'),'yyyymmdd') and to_char(to_date(#{sjrq},'yyyymmdd'),'yyyymmdd')) then sum(TRAAMT) end,0) as nlj_tyjzc
+				    from hbjyods.cbs_bdpal a
+				    <if test="coin_root =='yes' or hylb_root =='yes' or cust_root =='yes'">
+					    inner join hbjyods.cbs_adpxx adpxx on 
+					    	<if test="filtercoin_root != null and filtercoin_root.size() > 0">
+						    	adpxx.acccur in <include refid="getCoin"/> and <!-- 币种过滤 -->
+					    	</if>
+					    	<if test="filterhylb_root != null and filterhylb_root.size() > 0">
+						    	adpxx.cunkzl in <include refid="getHylb"/> and  <!-- 贷款主体行业类别过滤 -->
+						    </if>
+						    adpxx.dpacno = a.dpacno
+						<if test="hylb_root =='yes'">
+					    	left join code_hylb hylb on concat('A',adpxx.cunkzl) = hylb.code_key
+						</if>
+				    </if>
+					<if test="cust_root =='yes'">
+						<!-- 客户类型类似于00_01，前两位数(00-同业;01-对私;02-对公;)与字段a.prcls1(1-对私；2-对公；3-同业；)对应，最后两位数与字段cust.cust_subtype对应 -->
+						inner join hbjyods.cbs_m_org_cust cust on 
+							<if test="filtercust_root != null and filtercust_root.size() > 0">
+								concat('0',concat(case a.prcls1 when '3' then '0' else a.prcls1 end,concat('_',cust.cust_subtype))) in <include refid="getCust"/> and <!-- 客户细分类型('00_01') -->
+							</if>
+							cust.cust_no = adpxx.cusnum 
+			    		left join m_code mcode on ((a.prcls1 = '1' and mcode.code = 'ETYP35') or (a.prcls1 = '2' and mcode.code = 'ETYP36') or (a.prcls1 = '3' and mcode.code = 'ETYP37')) and cust.cust_subtype = mcode.key
+				    </if>
+				    where xzjdbz='0' 
+				    group by 
+					    a.prcls1,
+					    a.jiedbz,
+					    a.jioyrq,
+					    a.qudaoo,
+					    <if test="coin_root =='yes'">adpxx.acccur,</if>
+						<if test="hylb_root =='yes'">hylb.code_value,</if>
+					    <if test="cust_root =='yes'">mcode.value,</if>
+					    1)c
+				  group by 
+					  <if test="coin_root =='yes'">c.acccur,</if>
+					  <if test="hylb_root =='yes'">c.hylbmc,</if>
+					  <if test="cust_root =='yes'">c.value,</if>
+					  1)d
+				<if test="org_root == 'yes' or area_root == 'yes' or qygm_root == 'yes'">
+					inner join hbjyods.jrjgxx e
+					on '1699999998'=e.br_no
+				</if>
+				<if test="area_root == 'yes'">
+					left join CODE_DQMB area
+					on area.code_key = e.dqdm
+				</if>
+				<if test="qygm_root == 'yes'">
+					inner join SYYH_XJFW xjfw on 
+					<if test="filterqygm_root != null and filterqygm_root.size() > 0">
+	<!-- 					(xjfw.qygm_1 = '1' or xjfw.qygm_2 = '1' or xjfw.qygm_3 = '1' or xjfw.qygm_4 = '1') -->
+						 <include refid="getQygm"/>and
+					</if>
+					 xjfw.nbjgh = e.br_no <!-- 企业规模过滤 -->
+				</if>
+				group by 
+					<if test="org_root == 'yes'">e.jrjgbm,e.br_no,e.jrjgmc,</if>
+					<if test="area_root == 'yes'">area.code_key,area.code_value,</if>
+					<if test="qygm_root == 'yes'">xjfw.qygm_1,xjfw.qygm_2,xjfw.qygm_3,xjfw.qygm_4,</if>
+					<if test="coin_root == 'yes'">d.acccur,</if>
+					<if test="hylb_root == 'yes'">d.hylbmc,</if>
+					<if test="cust_root == 'yes'">d.value,</if>
+					1
+			</when>
+			<otherwise>
+				<!-- 用于union all占位，查询结果为0 -->
+				select 
+				   <if test="sjrq_root =='yes' ">'' as "数据日期",</if>
+				   <if test="org_root =='yes' ">'' as jrjgbm,</if>
+				   <if test="org_root =='yes' ">'' as nbjgh,</if>
+				   <if test="org_root =='yes' ">'' as "金融机构",</if>
+				   <if test="area_root =='yes' ">'' as dqdm,</if>
+				   <if test="area_root =='yes' ">'' as "金融机构地区",</if>
+				   <if test="qygm_root =='yes' ">'' as "企业规模",</if>
+				   <if test="coin_root =='yes' ">'' as "币种",</if>
+				   <if test="hylb_root =='yes' ">'' as "贷款主体行业类别",</if>
+			       <if test="cust_root =='yes' ">'' as "客户类型",</if>
+				   <if test="value_root == 'yes' or JEBJDZC =='yes' ">0 as "本季度支出金额（元）",</if>
+				   <if test="value_root == 'yes' or JEBJDSR =='yes' ">0 as "本季度收入金额（元）",</if>
+				   <if test="value_root == 'yes' or JENLJZC =='yes' ">0 as "年累计支出金额（元）",</if>
+				   <if test="value_root == 'yes' or JENLJSR =='yes' ">0 as "年累计收入金额（元）",</if>
+				   <if test="value_root == 'yes' or TBZJBJDZC =='yes' ">0 as "本季度支出同比增减（元）",</if>
+				   <if test="value_root == 'yes' or TBZJBJDSR =='yes' ">0 as "本季度收入同比增减（元）",</if>
+				   <if test="value_root == 'yes' or TBZJNLJZC =='yes' ">0 as "年累计支出同比增减（元）",</if>
+				   <if test="value_root == 'yes' or TBZJNLJSR =='yes' ">0 as "年累计收入同比增减（元）",</if>
+				   <if test="value_root == 'yes' or TBBHBJDZC =='yes' ">0 as "本季度支出同比变化（%）",</if>
+				   <if test="value_root == 'yes' or TBBHBJDSR =='yes' ">0 as "本季度收入同比变化（%）",</if>
+				   <if test="value_root == 'yes' or TBBHNLJZC =='yes' ">0 as "年累计支出同比变化（%）",</if>
+				   <if test="value_root == 'yes' or TBBHNLJSR =='yes' ">0 as "年累计收入同比变化（%）",</if>
+				   <if test="value_root == 'yes' or ZBBJDZC =='yes' ">0 as "本季度支出占比（%）",</if>
+				   <if test="value_root == 'yes' or ZBBJDSR =='yes' ">0 as "本季度收入占比（%）",</if>
+				   <if test="value_root == 'yes' or ZBNLJZC =='yes' ">0 as "年累计支出占比（%）",</if>
+				   <if test="value_root == 'yes' or ZBNLJSR =='yes' ">0 as "年累计收入占比（%）",</if>
+				   '' as sblx
+				from dual where 1 = 2
+			</otherwise>
+		</choose>
+		) tmp
+		order by 
+			<if test="org_root =='yes' ">tmp.nbjgh,</if>
+			<if test="area_root =='yes' ">tmp.dqdm,</if>
+			<if test="coin_root =='yes' ">tmp."币种",</if>
+			<if test="hylb_root =='yes' ">tmp."贷款主体行业类别",</if>
+			<if test="cust_root =='yes' ">tmp."客户类型",</if>
+			1
+	</select>
+<!-- 自定义报表 数据查询  END -->
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"    
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">  
+  
+<configuration>  
+    <!-- 内部元素配置顺序为：(properties?,settings?,typeAliases?,typeHandlers?,objectFactory?,objectWrapperFactory?,plugins?,environments?,databaseIdProvider?,mappers?)" -->
+    <settings>
+    	<setting name="logImpl" value="STDOUT_LOGGING"/>
+    	<setting name="callSettersOnNulls" value="true"/>
+    </settings>
+    
+    <typeAliases>
+    	<!-- 贷后提醒接口 Bean   2016/09/23  -->
+    	<!-- <package name="com.mininglamp.mws.hbpost.bean"/> -->
+    	<package name="com.mininglamp.currencySys.user.bean"/>
+    </typeAliases>
+    
+    <mappers>  
+        <!-- 配置sql语句文件 -->  
+        <mapper resource="com/mininglamp/currencySys/user/dao/impl/UserMapper.ibatis.xml" />
+        <mapper resource="com/mininglamp/currencySys/code/dao/impl/CodeMap.ibatis.xml" />
+        <mapper resource="com/mininglamp/currencySys/uploadAndDownload/dao/impl/UploadAndAownload.ibatis.xml" />
+        <mapper resource="com/mininglamp/currencySys/ManaPro/dao/impl/ManaPro.ibatis.xml" />
+    	<mapper resource="com/mininglamp/currencySys/generateMessage/dao/impl/GenerateMessage.ibatis.xml" />
+    	<mapper resource="com/mininglamp/currencySys/reportManage/dao/impl/ReportManageMap.ibatis.xml"/>
+    	<mapper resource="com/mininglamp/currencySys/userManage/dao/impl/UserManage.ibatis.xml"/>
+    	<mapper resource="com/mininglamp/currencySys/wildCatReport/dao/impl/WildCatReportMapper.xml"/>
+    	<mapper resource="com/mininglamp/currencySys/zhhb/dao/impl/Zhhb.ibatis.xml"/>
+    	<mapper resource="com/mininglamp/currencySys/ljhb/dao/impl/LjhbReportMapper.xml" />
+    	<mapper resource="com/mininglamp/currencySys/Syyh/dao/impl/SyyhEight.ibatis.xml" />
+    	<mapper resource="com/mininglamp/currencySys/dataSummary/dao/impl/DataSummarySqlMap.xml" />
+    	<mapper resource="com/mininglamp/currencySys/conversion/dao/impl/Conversion.ibatis.xml" />
+    	<mapper resource="com/mininglamp/currencySys/insertData/dao/impl/InsertData.ibatis.xml" />
+        <mapper resource="com/mininglamp/currencySys/jrjg/dao/impl/JrjgReportMapper.xml" />
+        <mapper resource="com/mininglamp/currencySys/announcement/dao/impl/AnnouncementMapper.xml" />
+        <mapper resource="com/mininglamp/currencySys/jglszcxx/dao/impl/JglszcxxMapper.ibatis.xml" />
+        <mapper resource="com/mininglamp/currencySys/regulationFile/dao/impl/RegulationMapper.xml" />
+        <mapper resource="com/mininglamp/currencySys/customReport/dao/impl/CustomReport.ibatis.xml" />
+        <mapper resource="com/mininglamp/currencySys/customReportAdditional/dao/impl/CustomReportAdditional.ibatis.xml" />
+    </mappers>
+    
+</configuration>

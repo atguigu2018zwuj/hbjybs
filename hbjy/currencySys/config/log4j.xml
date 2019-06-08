@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd" >
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<param name="target" value="System.out" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m\n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="levelMin" value="info" />
+			<param name="levelMax" value="ERROR" />
+			<param name="AcceptOnMatch" value="true" />
+		</filter>
+	</appender>
+	
+	<appender name="DEBUG" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<param name="File" value="${catalina.home}/log4j/currencySys/debug.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'_'yyyy-MM-dd'.log'"/> 
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="\n[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMax" value="DEBUG" />
+			<param name="LevelMin" value="DEBUG" />
+			<param name="AcceptOnMatch" value="true" />
+			</filter>
+	</appender>
+
+	<appender name="INFO" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<param name="File" value="${catalina.home}/log4j/currencySys/info.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'_'yyyy-MM-dd'.log'"/> 
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="\n[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMax" value="info" />
+			<param name="LevelMin" value="info" />
+			<param name="AcceptOnMatch" value="true" />
+			</filter>
+	</appender>
+
+	<appender name="WARN" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<param name="File" value="${catalina.home}/log4j/currencySys/warn.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'_'yyyy-MM-dd'.log'"/> 
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="\n[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMax" value="WARN" />
+			<param name="LevelMin" value="WARN" />
+			<param name="AcceptOnMatch" value="true" />
+			</filter>
+	</appender>
+
+	<appender name="ERROR" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<param name="File" value="${catalina.home}/log4j/currencySys/error.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'_'yyyy-MM-dd'.log'"/> 
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="\n[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMax" value="ERROR" />
+			<param name="LevelMin" value="ERROR" />
+			<param name="AcceptOnMatch" value="true" />
+			</filter>
+	</appender>
+	
+	<appender name="BHO" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<param name="File" value="${catalina.home}/log4j/currencySys/bho.log" />
+		<param name="Append" value="true" />
+		<param name="DatePattern" value="'_'yyyy-MM-dd'.log'"/> 
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="\n[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMax" value="info" />
+			<param name="LevelMin" value="info" />
+			<param name="AcceptOnMatch" value="true" />
+			</filter>
+	</appender>
+
+
+	<appender name="iBatis" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="\n[%p]%d{yyyy-MM-dd HH\:mm\:ss,SSS} \: %m" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMax" value="DEBUG" />
+			<param name="LevelMin" value="DEBUG" />
+		</filter>
+    </appender>
+    <!-- 
+    <logger name="com.ibatis" additivity="true">
+       <level value="DEBUG"/>
+    </logger>
+    <logger name="java.sql.Connection" additivity="true">
+       <level value="DEBUG"/>
+    </logger>
+    <logger name="java.sql.Statement" additivity="true">
+       <level value="DEBUG"/>
+    </logger>
+     -->
+    <!-- <logger name="java.sql.PreparedStatement" additivity="true">
+       <level value="DEBUG"/>
+       <appender-ref ref="iBatis"/>
+    </logger> -->
+    <!-- 
+     <logger name="java.sql.ResultSet" additivity="true">
+       <level value="DEBUG"/>
+       <appender-ref ref="iBatis"/>
+    </logger>
+ -->
+	<root>
+		<!-- <priority value="INFO" /> -->
+		<priority value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="DEBUG" />
+		<appender-ref ref="INFO" />
+		<appender-ref ref="WARN" />
+		<appender-ref ref="ERROR" />
+		<!-- <appender-ref ref="iBatis" /> -->
+	</root>
+	
+</log4j:configuration>

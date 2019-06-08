@@ -1,0 +1,1117 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DataSummaryMapper">
+
+	<select id="getData" resultType="map" parameterType="map">
+		select * from ${tableName} where sblx = #{sblx} and nbjgh = #{nbjgh} and JRJGBM = #{jrjgbm} and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd')
+	</select>
+
+	<delete id="deleteData" parameterType="Map">
+		delete from ${tableName} where sblx = #{sblx} and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and jrjgbm = #{jrjgbm} and nbjgh = #{nbjgh}
+	</delete>
+	
+	<!-- 1jcdb表省级汇总查询 -->
+	<insert id="insertJCDBSummary" parameterType="Map">
+		insert into SYYH_JCDB
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.szqx,
+		t.jb_sjsj,
+		t.jb_me,
+		t.jb_bb,
+		t.jb_gzh,
+		t.jb_sl,
+		t.jb_mehj,
+		t.jb_ly,
+		t.cbr_name,
+		t.cbr_sex,
+		t.cbr_id,
+		t.cbr_sjh,
+		t.cbr_yhkh,
+		'0',
+		''
+		FROM
+		SYYH_JCDB t
+		where (t.jrjgbm &lt;&gt; #{jrjgbm} or t.nbjgh &lt;&gt; #{nbjgh}) and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd')
+	</insert>
+
+	<!--2Xjfw表省级汇总查询 -->
+	<insert id="insertXJFWSummary" parameterType="Map">
+		insert into SYYH_XJFW
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.xjfwdm,
+		t.qf_zcs,
+		t.qf_lcs,
+		t.qygm_1,
+		t.qygm_2,
+		t.qygm_3,
+		t.qygm_4,
+		t.jfnr_qf,
+		t.jfnr_fd,
+		t.jfnr_xh,
+		t.jfnr_yy,
+		t.jfnr_cz,
+		t.jfnr_wb,
+		t.qyfw_1,
+		t.qyfw_2,
+		t.qyfw_3,
+		t.rysl,
+		t.qynl,
+		t.sjcl,
+		#{sblx},
+		''
+		from
+		SYYH_XJFW t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+	</insert>
+
+	<!--3Sszt表省级汇总查询 -->
+	<insert id="insertSSZTSummary" parameterType="Map">
+		insert into SYYH_SSZT
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.xydm,
+		t.cdgl,
+		t.cdmj,
+		t.cckfmj,
+		t.ghjg,
+		t.ffss_mjxt,
+		t.ffss_jkbw_qfcd,
+		t.ffss_jkbw_zdz,
+		t.ffss_jkbw_jjcd,
+		t.ffss_jkbw_fdcd,
+		t.hbss_jzzz,
+		t.hbss_tkzz,
+		t.hgzs,
+		#{sblx},
+		''
+		from
+		SYYH_SSZT t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+	</insert>
+
+	<!--4XJCL表省级汇总查询 -->
+	<insert id="insertXJCLSummary" parameterType="Map">
+		insert into SYYH_XJCL
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.qffs_zxcl,
+		t.qffs_zcs,
+		t.qffs_lcs,
+		t.qfzz_jzqf,
+		t.qfzz_fsqf,
+		t.ybcl,
+		t.cdqy_zb_xydm,
+		t.cdqy_zb_fffs,
+		t.cdqy_yb_xydm,
+		t.cdqy_yb_fffs,
+		#{sblx},
+		''
+		from SYYH_XJCL t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+	</insert>
+
+	<!--5Jjsb表省级汇总查询 -->
+	<insert id="insertJJSBSummary" parameterType="Map">
+		insert into SYYH_JJSB
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.sbsccj,
+		t.sbpp,
+		t.cpzl,
+		t.zdclnl_zb,
+		t.zdclnl_yb,
+		t.zyge_jw,
+		t.zyge_js,
+		t.zyge_qffl,
+		t.zyge_hmcz,
+		t.zyge_bz,
+		t.zyge_sjsc,
+		#{sblx},
+		''
+		from SYYH_JJSB t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+	</insert>
+
+	<!--6Qfnl表省级汇总查询 -->
+	<insert id="insertQFNLSummary" parameterType="Map">
+		insert into SYYH_QFNL
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		sum(t.wdzs) wdzs,
+		sum(t.wdqf_ypwd) wdqf_ypwd,
+		sum(t.wdqf_qfjpz_zb) wdqf_qfjpz_zb,
+		sum(t.wdqf_qfjpz_yb) wdqf_qfjpz_yb,
+		sum(t.jzqf_qfzx) jzqf_qfzx,
+		sum(t.jzqf_qfjpz_zb) jzqf_qfjpz_zb,
+		sum(t.jzqf_qfjpz_yb) jzqf_qfjpz_yb,
+		sum(t.yqfks) yqfks,
+		#{sblx},
+		''
+		from SYYH_QFNL t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.sblx
+	</insert>
+
+	<!--7Ymkc表省级汇总查询 -->
+	<insert id="insertYMKCSummary" parameterType="Map">
+		insert into SYYH_YMKC
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.qb,
+		sum(t.wzq_kcje) WZQ_KCJE,
+		sum(t.csq_kcje) CSQ_KCJE,
+		sum(t.hj_kcje)
+		HJ_KCJE,
+		#{sblx},
+		''
+		from SYYH_YMKC t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq,t.qb,t.sblx
+	</insert>
+
+	<!--8Kcxb表省级汇总查询 -->
+	<insert id="insertKCXBSummary" parameterType="Map">
+		insert into SYYH_KCXB
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		sum(t.yxhsl)
+		yxhsl,
+		sum(t.wxhsl) wxhsl,
+		sum(t.wcfsl) wcfsl,
+		sum(t.hj) hj,
+		#{sblx},
+		''
+		from
+		SYYH_KCXB t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.sblx
+	</insert>
+
+	<!--9Crkb表省级汇总查询 -->
+	<insert id="insertCRKBSummary" parameterType="Map">
+		insert into SYYH_CRKB
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.qb,
+		t.qbbb,
+		sum(t.qk_yfq)
+		qk_yfq,
+		sum(t.qk_wqfwzq) qk_wqfwzq,
+		sum(t.qk_yqfwzq)
+		qk_yqfwzq,
+		sum(t.ck_wqfwzq) ck_wqfwzq,
+		sum(t.ck_wfdcsq) ck_wfdcsq,
+		#{sblx},
+		''
+		from
+		SYYH_CRKB t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.qb,t.qbbb, t.sblx
+	</insert>
+
+	<!--10Rbsf表省级汇总查询 -->
+	<insert id="insertRBSFSummary" parameterType="Map">
+		insert into SYYH_RBSF
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.szqy,
+		sum(t.wdsl) wdsl,
+		sum(t.zzsbsl) zzsbsl,
+		sum(t.xjsr_gm_bq) xjsr_gm_bq,
+		sum(t.xjsr_gm_nlj)
+		xjsr_gm_nlj,
+		sum(t.xjsr_zz_bq) xjsr_zz_bq,
+		sum(t.xjsr_zz_nlj)
+		xjsr_zz_nlj,
+		sum(t.xjzc_gm_bq) xjzc_gm_bq,
+		sum(t.xjzc_gm_nlj)
+		xjzc_gm_nlj,
+		sum(t.xjzc_zz_bq) xjzc_zz_bq,
+		sum(t.xjzc_zz_nlj)
+		xjzc_zz_nlj,
+		sum(t.csbdh_bs_bq) csbdh_bs_bq,
+		sum(t.csbdh_bs_nlj)
+		csbdh_bs_nlj,
+		sum(t.csbdh_je_bq) csbdh_je_bq,
+		sum(t.csbdh_je_nlj)
+		csbdh_je_nlj,
+		sum(t.qbtj_bs_bq) qbtj_bs_bq,
+		sum(t.qbtj_bs_nlj)
+		qbtj_bs_nlj,
+		sum(t.qbtj_je_bq) qbtj_je_bq,
+		sum(t.qbtj_je_nlj)
+		qbtj_je_nlj,
+		'0',
+		''
+		from SYYH_RBSF t
+		where (t.jrjgbm &lt;&gt; #{jrjgbm} or t.nbjgh &lt;&gt; #{nbjgh}) and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd')
+		group by t.sjrq, t.szqy, t.sblx
+	</insert>
+
+	<!--11Ybzx表省级汇总查询 -->
+	<insert id="insertYBZXSummary" parameterType="Map">
+		insert into SYYH_YBZX
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.qb,
+		sum(t.hl_fxkhlsl)
+		hl_fxkhlsl,
+		sum(t.hl_jrjgsl) hl_jrjgsl,
+		sum(t.hl_hj)
+		hl_hj,
+		sum(t.ztf_hlzfxk) ztf_hlzfxk,
+		sum(t.ztf_jrjgsl) ztf_jrjgsl,
+		sum(t.ztf_qytqsl) ztf_qytqsl,
+		sum(t.ztf_hj) ztf_hj,
+		#{sblx},
+		''
+		from SYYH_YBZX
+		t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.qb, t.sblx
+	</insert>
+
+	<!--12PBSL表省级汇总查询 -->
+	<insert id="insertPBSLSummary" parameterType="Map">
+		insert into SYYH_PBSL
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.ybsblx,
+		sum(t.rhpbsl) rhpbsl,
+		sum(t.jrjg_pbsl) jrjg_pbsl,
+		sum(t.shqy_pbsl)
+		shqy_pbsl,
+		sum(t.hj_pbsl)
+		hj_pbsl,
+		#{sblx},
+		''
+		from SYYH_PBSL t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.ybsblx, t.sblx
+	</insert>
+
+	<!--13Szqk表省级汇总查询 -->
+	<insert id="insertSZQKSummary" parameterType="Map">
+		insert into SYYH_SZQK
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.xmmc,
+		sum(t.je_bq) a,
+		sum(t.je_nlj),
+		sum(t.tbzj_bq) b,
+		sum(t.tbzj_nlj),
+		sum(t.tbzj_bq)/(sum(t.je_bq) - sum(t.tbzj_bq)) * 100 as tbzf_bq,
+		sum(t.tbzj_nlj)/(sum(t.je_nlj) - sum(t.tbzj_nlj)) * 100 as tbzf_nlj,
+		sum(t.tbzj_bq)/sum(t.je_bq) * 100 as zb_bq,
+		sum(t.tbzj_nlj)/sum(t.je_nlj) * 100 as zb_nlj,
+		'0',
+		''
+		from SYYH_SZQK t
+		where (t.jrjgbm &lt;&gt; #{jrjgbm} or t.nbjgh &lt;&gt; #{nbjgh}) and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd')
+		group by t.sjrq, t.xmmc, t.sblx
+	</insert>
+
+	<!--14Xjqf表省级汇总查询 -->
+	<insert id="insertXJQFSummary" parameterType="Map">
+		insert into
+		SYYH_XJQF
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.qb,
+		sum(t.jxqf_jzqf_bq)
+		jxqf_jzqf_bq,
+		sum(t.jxqf_jzqf_nlj) jxqf_jzqf_nlj,
+		sum(t.jxqf_jzqf_bq)/(sum(t.jxqf_jzqf_bq)+sum(t.jxqf_wdqf_bq)) * 100
+		jxqf_jzqf_zb,
+		sum(t.jxqf_wdqf_bq) jxqf_wdqf_bq,
+		sum(t.jxqf_wdqf_nlj)
+		jxqf_wdqf_nlj,
+		sum(t.jxqf_wdqf_bq)/(sum(t.jxqf_jzqf_bq)+sum(t.jxqf_wdqf_bq)) * 100
+		jxqf_wdqf_zb,
+		sum(t.jxqf_jzqf_bq)+sum(t.jxqf_wdqf_bq) jxqf_xj_bq,
+		sum(t.jxqf_jzqf_nlj)+sum(t.jxqf_wdqf_nlj) jxqf_xj_nlj,
+		(sum(t.jxqf_jzqf_bq)+sum(t.jxqf_wdqf_bq))/(sum(t.jxqf_jzqf_bq)+sum(t.jxqf_wdqf_bq)+sum(t.sgqf_bq))
+		* 100 jxqf_xj_zb,
+		sum(t.sgqf_bq) sgqf_bq,
+		sum(t.sgqf_nlj) sgqf_nlj,
+		sum(t.sgqf_bq)/(sum(t.jxqf_jzqf_bq)+sum(t.jxqf_wdqf_bq)+sum(t.sgqf_bq))
+		* 100 sgqf_zb,
+		sum(t.hj_bq) hj_bq,
+		sum(t.hj_nlj) hj_nlj,
+		#{sblx},
+		''
+		from
+		SYYH_XJQF t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.qb,t.sblx
+	</insert>
+
+	<!--15Xjkc表省级汇总查询 -->
+	<insert id="insertXJKCSummary" parameterType="Map">
+		insert into SYYH_XJKC
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.qb,
+		sum(t.wzq_ywkkc)
+		wzq_ywkkc,
+		sum(t.wzq_jjbf) wzq_jjbf,
+		sum(t.wzq_qt)
+		wzq_qt,
+		sum(t.wzq_xj)
+		wzq_xj,
+		sum(t.csq) csq,
+		sum(t.hj) hj,
+		#{sblx},
+		''
+		from
+		SYYH_XJKC t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.qb,t.sblx
+	</insert>
+
+	<!--16Zxth表省级汇总查询 -->
+	<insert id="insertZXTHSummary" parameterType="Map">
+		insert into SYYH_ZXTH
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.dw,
+		sum(t.tf_1_je) tf_1_je,
+		round(sum(t.tf_1_je)/(select sum(tf_1_je) from SYYH_ZXTH where SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd'))*100,2) tf_1_zb,
+		sum(t.tf_2_je) tf_2_je,
+		round(sum(t.tf_2_je)/(select sum(tf_2_je) from SYYH_ZXTH where SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd'))*100,2) tf_2_zb,
+		sum(t.hl_1_je) hl_1_je,
+		round(sum(t.hl_1_je)/(select sum(hl_1_je) from SYYH_ZXTH where SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd'))*100,2) hl_1_zb,
+		sum(t.hl_2_je) hl_2_je,
+		round(sum(t.hl_2_je)/(select sum(hl_2_je) from SYYH_ZXTH where SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd'))*100,2) hl_2_zb,
+		#{sblx},
+		''
+		from
+		SYYH_ZXTH t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.dw,t.sblx
+	</insert>
+
+	<!--17Kcxj表省级汇总查询 -->
+	<insert id="insertKCXJSummary" parameterType="Map">
+		insert into SYYH_KCXJ
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.kcjb,
+		t.qb,
+		sum(t.xjkc_wzq) xjkc_wzq,
+		sum(t.xjkc_csq) xjkc_csq,
+		sum(t.xjkc_csq)/(sum(t.xjkc_wzq)+sum(t.xjkc_csq)) * 100 xjkc_csqzb,
+		sum(t.kmxj_sf) kmxj_sf,
+		sum(t.kmxj_fc) kmxj_fc,
+		#{sblx},
+		''
+		from SYYH_KCXJ t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.kcjb, t.qb,t.sblx
+	</insert>
+
+	<!--18Xqqk表省级汇总查询 -->
+	<insert id="insertXQQKSummary" parameterType="Map">
+		insert into SYYH_XQQK
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.dylx,
+		t.qb,
+		sum(t.xjkc_wzq) xjkc_wzq,
+		sum(t.xjkc_csq) xjkc_csq,
+		sum(t.xjkc_csq)/(sum(t.xjkc_wzq)+sum(t.xjkc_csq)) * 100 xjkc_csqbl,
+		sum(t.xjxq_jq_gs) xjxq_jq_gs,
+		sum(t.xjxq_jq_gs)/(sum(t.xjxq_jq_gs)+sum(t.xjxq_yb_gs)+sum(t.xjxq_cf_gs))
+		xjxq_jq_bl,
+		sum(t.xjxq_yb_gs) xjxq_yb_gs,
+		sum(t.xjxq_yb_gs)/(sum(t.xjxq_jq_gs)+sum(t.xjxq_yb_gs)+sum(t.xjxq_cf_gs))
+		xjxq_yb_bl,
+		sum(t.xjxq_cf_gs) xjxq_cf_gs,
+		sum(t.xjxq_cf_gs)/(sum(t.xjxq_jq_gs)+sum(t.xjxq_yb_gs)+sum(t.xjxq_cf_gs))
+		xjxq_cf_bl,
+		#{sblx},
+		''
+		from SYYH_XQQK t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.dylx,t.qb,t.sblx
+	</insert>
+
+	<!--19Szlx表省级汇总查询 -->
+	<insert id="insertSZLXSummary" parameterType="Map">
+		insert into SYYH_SZLX
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.kcjb,
+		t.qb,
+		sum(t.kmxjsr_jg)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_jg,
+		sum(t.kmxjsr_sy)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_sy,
+		sum(t.kmxjsr_qy_d)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_qy_d,
+		sum(t.kmxjsr_qy_z)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_qy_z,
+		sum(t.kmxjsr_qy_x)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_qy_x,
+		sum(t.kmxjsr_gtgsh)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_gtgsh,
+		sum(t.kmxjsr_jm)/(sum(t.kmxjsr_jg)+sum(t.kmxjsr_sy)+sum(t.kmxjsr_qy_d)+sum(t.kmxjsr_qy_z)+sum(t.kmxjsr_qy_x)+sum(t.kmxjsr_gtgsh)+sum(t.kmxjsr_jm))
+		* 100 kmxjsr_jm,
+		sum(t.kmxjzc_jg)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_jg,
+		sum(t.kmxjzc_sy)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_sy,
+		sum(t.kmxjzc_qy_d)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_qy_d,
+		sum(t.kmxjzc_qy_z)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_qy_z,
+		sum(t.kmxjzc_qy_x)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_qy_x,
+		sum(t.kmxjzc_gtgsh)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_gtgsh,
+		sum(t.kmxjzc_jm)/(sum(t.kmxjzc_jg)+sum(t.kmxjzc_sy)+sum(t.kmxjzc_qy_d)+sum(t.kmxjzc_qy_z)+sum(t.kmxjzc_qy_x)+sum(t.kmxjzc_gtgsh)+sum(t.kmxjzc_jm))
+		* 100 kmxjzc_jm,
+		#{sblx},
+		''
+		from SYYH_SZLX t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.kcjb, t.qb, t.sblx
+	</insert>
+
+	<!--20Bzjd表省级汇总查询 -->
+	<insert id="insertBZJDSummary" parameterType="Map">
+		insert into SYYH_BZJD
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.dylx,
+		t.qb,
+		sum(t.qsydw_ylt_h)/(sum(t.qsydw_ylt_h)+sum(t.qsydw_ylt_jh)+sum(t.qsydw_bylt_c)+sum(t.qsydw_bylt_jc))
+		* 100 qsydw_ylt_h,
+		sum(t.qsydw_ylt_jh)/(sum(t.qsydw_ylt_h)+sum(t.qsydw_ylt_jh)+sum(t.qsydw_bylt_c)+sum(t.qsydw_bylt_jc))
+		* 100 qsydw_ylt_jh,
+		sum(t.qsydw_bylt_c)/(sum(t.qsydw_ylt_h)+sum(t.qsydw_ylt_jh)+sum(t.qsydw_bylt_c)+sum(t.qsydw_bylt_jc))
+		* 100 qsydw_bylt_c,
+		sum(t.qsydw_bylt_jc)/(sum(t.qsydw_ylt_h)+sum(t.qsydw_ylt_jh)+sum(t.qsydw_bylt_c)+sum(t.qsydw_bylt_jc))
+		* 100 qsydw_bylt_jc,
+		sum(t.jrjg_ylt_h)/(sum(t.jrjg_ylt_h)+sum(t.jrjg_ylt_jh)+sum(t.jrjg_bylt_c)+sum(t.jrjg_bylt_jc))
+		* 100 jrjg_ylt_h,
+		sum(t.jrjg_ylt_jh)/(sum(t.jrjg_ylt_h)+sum(t.jrjg_ylt_jh)+sum(t.jrjg_bylt_c)+sum(t.jrjg_bylt_jc))
+		* 100 jrjg_ylt_jh,
+		sum(t.jrjg_bylt_c)/(sum(t.jrjg_ylt_h)+sum(t.jrjg_ylt_jh)+sum(t.jrjg_bylt_c)+sum(t.jrjg_bylt_jc))
+		* 100 jrjg_bylt_c,
+		sum(t.jrjg_bylt_jc)/(sum(t.jrjg_ylt_h)+sum(t.jrjg_ylt_jh)+sum(t.jrjg_bylt_c)+sum(t.jrjg_bylt_jc))
+		* 100 jrjg_bylt_jc,
+		#{sblx},
+		''
+		from SYYH_BZJD t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.dylx, t.qb, t.sblx
+	</insert>
+
+	<!--21Xqmy表省级汇总查询 -->
+	<insert id="insertXQMYSummary" parameterType="Map">
+		insert into SYYH_XQMY
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.kcjb,
+		t.qb,
+		t.yf,
+		sum(t.jq)/(sum(t.jq)+sum(t.yb)+sum(t.cf)) * 100 jq,
+		sum(t.yb)/(sum(t.jq)+sum(t.yb)+sum(t.cf)) * 100 yb,
+		sum(t.cf)/(sum(t.jq)+sum(t.yb)+sum(t.cf)) * 100 cf,
+		#{sblx},
+		''
+		from SYYH_XQMY t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.kcjb, t.qb, t.yf, t.sblx 
+	</insert>
+
+	<!--22Wssl表省级汇总查询 -->
+	<insert id="insertWSSLSummary" parameterType="Map">
+		insert into SYYH_WSSL
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		sum(t.qxyh_yywd),
+		sum(t.cyyh_yywd),
+		sum(t.cyyh_yywd)/sum(t.qxyh_yywd) *
+		100 qxyh_cybl,
+		sum(t.qxyh_zzjj),
+		sum(t.cyyh_zzjj),
+		sum(t.cyyh_zzjj)/sum(t.qxyh_zzjj) * 100 qxyh_zzcybl,
+		sum(t.qxyh_qfsb),
+		sum(t.qfzx_qfsb),
+		sum(t.yhwd_qfsb),
+		#{sblx},
+		''
+		from SYYH_WSSL t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.sblx
+	</insert>
+
+	<!--23Wdsl表省级汇总查询 -->
+	<insert id="insertWDSLSummary" parameterType="Map">
+		insert into SYYH_WDSL
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.jrjgfw,
+		sum(t.bgq_jrjgwd) bgq_jrjgwd,
+		#{sblx},
+		''
+		from SYYH_WDSL t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.jrjgfw, t.sblx
+	</insert>
+
+	<!--24Sydw表省级汇总查询 -->
+	<insert id="insertSYDWSummary" parameterType="Map">
+		insert into SYYH_SYDW
+		select
+		t.sjrq,
+		#{jrjgbm},
+		#{nbjgh},
+		t.jrjgfw,
+		t.ybfl,
+		sum(t.bgq_qsydw) bgq_qsydw,
+		#{sblx},
+		''
+		from SYYH_SYDW t
+		<if test="sblx != null and sblx =='2'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='3'
+		</if>
+		<if test="sblx != null and sblx =='1'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='2'
+		</if>
+		<if test="sblx != null and sblx =='0'.toString()">
+		where (t.nbjgh in
+		  (select BR_NO
+                    from HBJYODS.jrjgxx h
+                   start with h.BR_NO =#{nbjgh}
+                  connect by h.SJGLJGNBJGH = prior h.BR_NO)
+		) and t.SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') and t.sblx='1'
+		</if>
+		group by t.sjrq, t.jrjgfw, t.ybfl, t.sblx
+	</insert>
+</mapper>
+
+
+
+
+

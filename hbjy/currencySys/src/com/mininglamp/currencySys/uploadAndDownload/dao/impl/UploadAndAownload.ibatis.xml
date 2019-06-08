@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="testDaoImp">
+
+	<!-- 查询 -->
+	<select id="test" resultType="Map" parameterType="Map">
+		select 
+		trim(to_char(t.SJRQ,'yyyy-mm-dd')) SJRQ,
+		trim(t.ZHH) ZHH,
+		trim(t.ZHMC) ZHMC,
+		trim(t.KHNBBM) KHNBBM,
+		trim(t.KHHJRJGBM) KHHJRJGBM,
+		trim(t.KHHNBJGH) KHHNBJGH,
+		trim(t.ZHBZ) ZHBZ,
+		trim(t.ZHLX) ZHLX,
+		trim(to_char(t.KHRQ,'yyyy-mm-dd')) KHRQ,
+		trim(to_char(t.XHRQ,'yyyy-mm-dd')) XHRQ,
+		trim(t.ZHZT) ZHZT,
+		trim(t.SFKTWSYH) SFKTWSYH,
+		trim(t.SFKTSJYH) SFKTSJYH
+		 from 
+		  BASE_DATA_ACCO t
+		  where 1=1
+		<if test="beginSjrq != null and beginSjrq != ''">
+			and t.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="zhh != null and zhh != ''">
+			and t.ZHH like '%${zhh}%' 
+		</if>
+		<if test="zhmc != null and zhmc != ''">
+			and t.ZHMC like '%${zhmc}%' 
+		</if>
+		<if test="kunbbm != null and kunbbm != ''">
+			and t.KHNBBM like '%${kunbbm}%' 
+		</if>
+		<if test="kuhjrjgbm != null and kuhjrjgbm != ''">
+			and t.KHHJRJGBM like '%${kuhjrjgbm}%' 
+		</if>
+		<if test="kuhnbjgh != null and kuhnbjgh != ''">
+			and t.KHHNBJGH like '%${kuhnbjgh}%' 
+		</if>
+		<if test="zzbz != null and zzbz != ''">
+			and t.ZHBZ like '%${zzbz}%' 
+		</if>
+		<if test="zzzl != null and zzzl != ''">
+			and t.ZHLX like '%${zzzl}%' 
+		</if>
+		<if test="khtqSjrq != null and khtqSjrq != ''">
+			and t.KHRQ = to_date(#{khtqSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="xhrqSjrq != null and xhrqSjrq != ''">
+			and t.XHRQ = to_date(#{xhrqSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+		<if test="zzzt != null and zzzt != ''">
+			and t.ZHZT like '%${zzzt}%' 
+		</if>
+		<if test="sfktwsyh != null and sfktwsyh != ''">
+			and t.SFKTWSYH like '%${sfktwsyh}%' 
+		</if>
+		<if test="sfktsjyh != null and sfktsjyh != ''">
+			and t.SFKTSJYH like '%${sfktsjyh}%' 
+		</if>
+	</select>
+	
+	<!-- 查询校入库前校验表 -->
+	<select id="check_rule_config" resultType="Map" parameterType="Map">
+		select 
+		t.ruleid,
+		t.table_name,
+		t.field_id,
+		t.field_name,
+		t.field_type,
+		t.is_null,
+		t.is_contain_conf_table,
+		t.is_logic,
+		t.conf_table_name,
+		t.remark,
+		t.xlk,
+		t.has_formatter,
+		t.is_input_auto
+		 from 
+		  T_CHECK_RULE_CONFIG t
+		  where 1 = 1
+		  <if test="tableNames != null and tableNames != ''">
+		  	and t.table_name = #{tableNames,jdbcType=VARCHAR } 
+		  </if>
+		 order by RULEID
+	</select>
+	
+	<!--批量插入  -->
+	<insert id="saveData" parameterType="Map">
+		insert all 
+		<foreach collection="saveTool" item="item" index="index" separator=" ">  
+	            into BASE_DATA_ACCO 
+				(SJRQ,ZHH,ZHMC,KHNBBM,KHHJRJGBM,KHHNBJGH,ZHBZ,ZHLX,KHRQ,XHRQ,ZHZT,SFKTWSYH,SFKTSJYH) 
+				values 
+	            (to_date(#{item.SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') ,
+	            #{item.ZHH,jdbcType=VARCHAR } , 
+	            #{item.ZHMC,jdbcType=VARCHAR } ,
+	            #{item.KHNBBM,jdbcType=VARCHAR } , 
+	            #{item.KHHJRJGBM,jdbcType=CHAR } , 
+	            #{item.KHHNBJGH,jdbcType=VARCHAR } ,   
+	            #{item.ZHBZ,jdbcType=CHAR } ,
+	            #{item.ZHLX,jdbcType=CHAR } ,  
+	            to_date(#{item.KHRQ,jdbcType=DATE},'YYYY-MM-DD'),
+	            to_date(#{item.XHRQ,jdbcType=DATE},'YYYY-MM-DD'),
+	            #{item.ZHZT,jdbcType=CHAR } , #{item.SFKTWSYH,jdbcType=CHAR } , 
+	            #{item.SFKTSJYH,jdbcType=CHAR } )
+        </foreach> 
+        select 1 from dual
+	</insert>
+	
+	<!--批量删除  -->
+	<delete id="deleteData" parameterType="Map" >
+		delete from BASE_DATA_ACCO t where 1=2
+		<if test="tableSjrq != null and tableSjrq != ''">
+			or t.SJRQ = to_date(#{tableSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+		</if>
+	</delete>
+	
+	<update id="updateData" parameterType="Map">
+		update BASE_DATA_ACCO t set 
+		<if test="SJRQ != null and SJRQ != ''">
+			t.SJRQ = to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="ZHMC != null and ZHMC != ''">
+			t.ZHMC = #{ZHMC,jdbcType=VARCHAR },
+		</if>
+		<if test="KHNBBM != null and KHNBBM != ''">
+			t.KHNBBM = #{KHNBBM,jdbcType=VARCHAR },
+		</if>
+		<if test="KHHNBJGH != null and KHHNBJGH != ''">
+			t.KHHNBJGH = #{KHHNBJGH,jdbcType=VARCHAR },
+		</if>
+		<if test="ZHBZ != null and ZHBZ != ''">
+			t.ZHBZ = #{ZHBZ,jdbcType=CHAR },
+		</if>
+		<if test="ZHLX != null and ZHLX != ''">
+			t.ZHLX = #{ZHLX,jdbcType=CHAR },
+		</if>
+		<if test="KHRQ != null and KHRQ != ''">
+			t.KHRQ = to_date(#{KHRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="XHRQ != null and XHRQ != ''">
+			t.XHRQ = to_date(#{KHRQ,jdbcType=DATE}, 'YYYY-MM-DD'),
+		</if>
+		<if test="ZHZT != null and ZHZT != ''">
+			t.ZHZT = #{ZHZT,jdbcType=CHAR },
+		</if>
+		<if test="SFKTWSYH != null and SFKTWSYH != ''">
+			t.SFKTWSYH = #{SFKTWSYH,jdbcType=CHAR },
+		</if>
+		<if test="SFKTSJYH != null and SFKTSJYH != ''">
+			t.SFKTSJYH = #{SFKTSJYH,jdbcType=CHAR },
+		</if>
+		<if test="ZHH != null and ZHH != ''">
+			t.ZHH = #{ZHH,jdbcType=VARCHAR },
+		</if>
+		<if test="KHHJRJGBM != null and KHHJRJGBM != ''">
+			t.KHHJRJGBM = #{KHHJRJGBM,jdbcType=CHAR }
+		</if>
+		where 
+		<foreach collection="last_row" item="item" index="index" separator=" "> 
+			t.ZHH = #{item.ZHH,jdbcType=VARCHAR } and t.KHHJRJGBM = #{item.KHHJRJGBM,jdbcType=CHAR }
+		</foreach>
+	</update>
+	
+	<!--插入BSGL  -->
+	<insert id="insertBSGL" parameterType="Map">
+		insert into BSGL (SJRQ,WJBM,NBJGH,USERNAME,YMDHMS,CONTENT,CODE) values(
+			to_date(#{tableSjrq,jdbcType=DATE}, 'YYYY-MM-DD') ,
+	        LOWER(substr(#{tname,jdbcType=VARCHAR }, -4)) ,
+	        #{nbjgh,jdbcType=VARCHAR },
+	        #{username,jdbcType=VARCHAR },
+	        to_date(#{ymdhms,jdbcType=DATE}, 'YYYY-MM-DD HH24:MI:SS') ,
+	        #{content,jdbcType=VARCHAR },
+	        USER_MANAGER_ID.nextval  
+		)
+	</insert>
+	
+	<!-- 获取当前用户的子类 -->
+	<select id="getAllAuth" resultType="Map" parameterType="Map">
+		select BR_NO nbjgh from HBJYODS.JRJGXX m
+				start with m.BR_NO = #{nbjgh,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+	</select>
+	
+	<!-- 获取表中所对应的内部机构号 -->
+	<select id="getTable_nbjgh" resultType="Map" parameterType="Map">
+		select  tablename,table_nbjgh from USER_AUTHORITY where tablename is not null and tablename = LOWER(#{tname,jdbcType=VARCHAR })
+	</select>
+</mapper>

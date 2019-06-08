@@ -1,0 +1,153 @@
+@charset "utf-8";
+body{ font-family:Arial,"Microsoft Yahei","微软雅黑","宋体"; font-size:14px; color:#505050; background:#f3f3f3;}
+
+/*------------------------------ 通用样式 ------------------------------*/
+/* 字体样式 */
+.font18{ font-size:18px!important;}
+.font16{ font-size:16px!important;}
+.font14{ font-size:14px!important;}
+.font12{ font-size:12px!important;}
+.bold{ font-weight:bold!important;}
+.italic{ font-style:italic!important;}
+.underline{ text-decoration:underline!important;}
+
+/* 颜色 */
+.white{ color:#ffffff!important;}
+.gray{ color:#acacac!important;}
+.red{ color:#fa535a!important;}
+.green{ color:#009934!important;}
+.orange{ color:#ff6c00!important;}
+.black{ color:#000!important;}
+.blue{ color:#248dac!important;}
+
+/* 对齐方式 */
+.txtc{ text-align:center!important;}
+.txtl{ text-align:left!important;}
+.txtr{ text-align:right!important;}
+.txtm{ vertical-align:middle!important;}
+
+/* 清除布局浮动 */
+.clearfix:before,.clearfix:after{ content:""; display:block;}
+.clearfix:after{ clear:both;}
+.clearfix{ zoom:1;}
+.clear{ clear:both; display:block; overflow:hidden; visibility:hidden; width:0; height:0;}
+
+/* 其他 */
+.hidden{ display:none!important;}
+.block{ display:inline-block; *display:inline; *zoom:1;}
+.nobg{ background:none!important;}
+.nopadding{ padding:0!important;}
+.nomargin{ margin:0!important;}
+.noborder{ border:none!important;}
+.nostyle *{ width:auto!important; margin:0!important; padding:0!important; font-size:12px!important; font-weight:normal!important; text-align:left!important; color:#666!important; float:none!important;}
+.radius2{ -moz-border-radius:2px; -webkit-border-radius:2px; border-radius:2px;}
+.loading{ min-width:32px; min-height:32px; background:url(images/loading.gif) center center no-repeat;}
+.notip span.error,.notip label.error{display:none!important;}
+.ellipsis{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+/*------------------------------ UI组件样式 ------------------------------*/
+/* 表单 */
+.form-title-fixed .form-group{ padding-left: 150px;}
+.form-title-fixed .form-group .title{ width: 140px; float: left; margin-left: -150px;}
+
+/* artDialog */
+body .artui-dialog{ font-family:Arial,"Microsoft Yahei","微软雅黑","宋体"; font-size:14px; color:#505050; border-radius:0; border-color:#ddd;}
+body .artui-dialog-footer{ background-color:#eaeaea; border-top:1px solid #ddd; padding:20px;}
+body .artui-dialog-footer button{ border-radius:0; padding:9px 35px; background:#f3f3f3; border-color:#ddd;}
+body .artui-dialog-footer button:hover, 
+body .artui-dialog-footer button:focus, 
+body .artui-dialog-footer button:active{ background:#f9f9f9;}
+body .artui-dialog-footer button.artui-dialog-autofocus{ background-color:#49a7f0; border-color:#49a7f0;}
+body .artui-dialog-footer button.artui-dialog-autofocus:hover,
+body .artui-dialog-footer button.artui-dialog-autofocus:focus,
+body .artui-dialog-footer button.artui-dialog-autofocus:active{ background-color:#3e98df; border-color:#3e98df;}
+body .artui-dialog-footer button+button{ margin-left:10px;}
+
+/* selecrt2 */
+body .select2-container-multi .select2-choices,
+body .select2-container .select2-choice{ 
+	border-radius:0; 
+	line-height:1.42857143;
+  color:#555;
+  background-color:#fff;
+  background-image:none;
+  -webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, .075);
+          box-shadow:inset 0 1px 1px rgba(0, 0, 0, .075);
+  -webkit-transition:border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+          transition:border-color ease-in-out .15s, box-shadow ease-in-out .15s;}
+body .select2-container-multi .select2-choices .select2-search-field input{ padding:4px 5px;}
+body .select2-container-multi .select2-choices .select2-search-choice{ margin:4px 0 4px 5px}
+body .select2-container .select2-choice{ width:100%; height:34px; line-height:34px; border-color:#ddd;}
+body .select2-container .select2-choice .select2-arrow{border-radius:0; border-color:#ddd;}
+body .select2-container.form-control{ padding:0; border:0;}
+body .select2-container.form-control .select2-choice .select2-arrow b{ background-position:0 4px;}
+body .select2-drop-active{ border-color:#ddd;}
+body .select2-results .select2-highlighted{ background-color:#3e98df;}
+body .select2-search input{ padding: 2px 20px 2px 5px;}
+
+/*datetimepicker*/
+/* 郑州人行融资index页面 */
+/*  .datetimepicker{background: #162a42;}
+.datetimepicker td,
+.datetimepicker th{color: #fff;}
+[class*=" datetimepicker-dropdown"]:after{border-bottom: 6px solid #162A42!important;}
+.datetimepicker thead tr:first-child th:hover,
+.datetimepicker tfoot tr:first-child th:hover{background: rgba(238, 238, 238, 0.3)!important;}
+.datetimepicker table tr td span:hover{background: rgba(238,238,238,0.3)!important;} */
+/* 郑州人行查询页面 */
+/*daterangepicker
+.daterangepicker td.disabled {background-color: #f1f1f1!important; cursor: no-drop!important;}
+.daterangepicker .ranges .input-mini{ background:none!important;color:#fff!important;}
+.daterangepicker,
+.daterangepicker .calendar-date{ background:#162a42!important;}
+.daterangepicker td.disabled {background: none!important;color:#949494!important;}
+.daterangepicker td.in-range {background: rgba(235, 244, 248, 0.2)!important;}
+.daterangepicker .calendar-date {border: 1px solid #456289!important;}
+.daterangepicker td, .daterangepicker th { background:none!important;color:#fff;}
+.daterangepicker td.available{color:#fff!important;}
+.daterangepicker td.active,
+.daterangepicker td.active:hover{
+    background-color: #357ebd!important;
+    border-color: #3071a9!important;
+    color: #fff!important;
+}
+.daterangepicker.opensright:after,
+.daterangepicker.opensleft:after{border-bottom: 6px solid rgb(22, 42, 66)!important;} */
+
+/* dataTables */
+body .dataTables_wrapper table.dataTable.no-footer{ background:#fff; border:none; margin:0!important;}
+body .dataTables_wrapper table.dataTable thead th{ border:none; padding:8px 18px; text-align:center; background-color:#eaeaea; font-size:16px;}
+body .dataTables_wrapper table.dataTable tbody td{ border:none;}
+body .dataTables_wrapper .dataTables_filter{ padding:20px;}
+body .dataTables_wrapper .dataTables_filter label{margin:0;}
+body .dataTables_wrapper .dataTables_filter input{ width:350px; height:40px; border-color:#eaeaea;}
+body .dataTables_wrapper .dataTables_info{ margin:0 20px; color:#acacac;}
+body .dataTables_wrapper .dataTables_length{ float:right; margin:0 20px;}
+body .dataTables_wrapper .dataTables_paginate{ padding:0;}
+body .dataTables_wrapper .dataTables_paginate a{ border-radius:0; padding:9px 12px;}
+body .dataTables_wrapper .dataTables_length select{ width:100px; height:40px; border-radius:0;}
+body .dataTables_wrapper .dataTables_paginate ul.pagination{ margin:0;}
+body .dataTables_wrapper .dbotm{ background:#eaeaea; height:79px; padding:20px 0 0;}
+
+/*st-grid*/
+body .grid{ font-size:14px;font-family:Arial,"Microsoft Yahei","微软雅黑","宋体";}
+body .grid th{ padding:4px; border:none;background-color:#eaeaea;}
+body .grid td{padding:0px; border:none;position: relative;}
+body div.page-node{ font-size:14px; text-align:right; padding:17px 0;height:70px!important}
+body div.page-node .gridTotal{ float:left; color:#b4b4b4;}
+body div.page-node .gridTotal b{ color:#333; padding:0 3px; font-weight:normal;}
+body div.page-node input.page-bt,
+body .turn-page,
+body div.page-node input.some-page,
+body div.page-node .page-size{ height:28px; border-radius: 10px!important;outline:medium;line-height:20px; border-radius:0; margin:0 5px; padding:0 12px; font-size:14px;}
+body div.page-node .page-size{ padding-right:0;}
+body div.page-node input.page-bt{ line-height:24px;}
+body div.page-node input.page-bt:hover{  color:#fff;}
+body div.page-node .turn-page{ border:none;height: 28px;display: inline-block;vertical-align: middle;padding: 0 10px;line-height: 24px;}
+
+/*------------------------------ 页面样式 ------------------------------*/
+/* 主体 */
+.mlampUi .main{margin-bottom:68px; padding:20px;}
+.mlampUi .content{padding:20px; margin-bottom: 20px; background-color:#fff;}
+.mlampUi .footer{ height:68px; line-height:68px; border-top:1px solid #eaeaea; border-bottom:1px solid #eaeaea; color:#acacac; background:#fff;}
+
+

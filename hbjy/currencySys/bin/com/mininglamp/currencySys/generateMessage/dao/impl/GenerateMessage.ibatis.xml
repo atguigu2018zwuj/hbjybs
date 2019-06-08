@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="generateMessage">
+	<select id="selecti" resultType="Map" parameterType="Map">
+		SELECT
+		T.TABLENAME "name",
+		T.CODE_VALUE "value",
+		T.A_LEVEL "a_level",
+		T.PID "pId",
+		T.ID "id"
+		FROM
+		USER_AUTHORITY T
+	</select>
+	
+	<!-- 获取树形 -->
+  <!-- <select id="getUSER_AUTHORITY" resultType="map" parameterType="map">
+		select 
+		T.TABLENAME "key",
+		T.CODE_VALUE "text",
+		T.ID "id",
+		T.PID "pid"
+		<if test="sign != null and sign != ''">
+			,
+			case when G.BIAOSHI = '1' then '生成报文成功'单成功，双失败
+				when G.BIAOSHI = '2' then '生成报文失败'
+				when G.BIAOSHI = '3' then '校验成功'
+				when G.BIAOSHI = '4' then '校验失败'
+				when G.BIAOSHI = '5' then '上报成功'
+				when G.BIAOSHI = '6' then '上报失败'
+				when G.BIAOSHI = '66' then '强制性校验错误'
+			end "scbwxx"
+		</if>
+		FROM (SELECT TABLENAME,CODE_VALUE,ID,PID,CODE_KEY FROM USER_AUTHORITY 
+				where PID = #{ID,jdbcType=VARCHAR }
+				<if test="one != null and one != ''">
+					and id != 2 and id != 3
+				</if>
+				<if test="sign != null and sign != ''">
+					and TABLENAME != 'JRJGXX'
+					<if test="bm != null and bm != ''">
+						and TABLENAME like '%${bm}%'
+					</if>
+					<if test="ywm != null and ywm != ''">
+						and CODE_VALUE like '%${ywm}%'
+					</if>
+					and  (MARKINGCODE = 1 
+					<if test="MARKINGCODE != null and MARKINGCODE != ''">
+						or MARKINGCODE = 2
+					</if>
+					<if test="isLastDayOfQuarter != null and isLastDayOfQuarter != ''">
+						or MARKINGCODE = 3
+					</if>
+					<if test="getIsbn != null and getIsbn != ''">
+						or MARKINGCODE = 4
+					</if>
+					<if test="isCurrYearLast != null and isCurrYearLast != ''">
+						or MARKINGCODE = 5
+					</if>
+					)
+				</if>
+			) T
+		<if test="sign != null and sign != ''">
+			left join (SELECT * FROM GENERATEREPORT WHERE SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')) G 
+			on T.CODE_KEY = G.TABLENAME
+		</if>
+	</select> -->
+	
+	<select id="getUSER_AUTHORITY" resultType="map" parameterType="map">
+		 select 
+			T.TABLENAME "key",
+			T.CODE_KEY "ywbm",
+			T.CODE_VALUE "text",
+			T.ID "id",
+			T.PID "pid",
+			G.BIAOSHI "scbwxx_code",
+			case when G.BIAOSHI = '1' then '生成报文成功'
+				when G.BIAOSHI = '2' then '生成报文失败'
+				when G.BIAOSHI = '3' then '校验成功'
+				when G.BIAOSHI = '4' then '校验失败'
+				when G.BIAOSHI = '5' then '上报成功'
+				when G.BIAOSHI = '6' then '上报失败'
+				when G.BIAOSHI = '66' then '强制性校验错误'
+				end "scbwxx",
+			case when (G.BIAOSHI = '1' or G.BIAOSHI = '3' or G.BIAOSHI = '5') then 'true'
+	        	when (G.BIAOSHI = '2' or G.BIAOSHI = '4' or G.BIAOSHI = '6' or G.BIAOSHI = '66') then 'false'
+	        	else ''
+	        	end as "ispass"
+				
+		from (
+			select 
+			*
+			from user_authority
+			where id in
+			(
+				select  distinct(id) FROM USER_AUTHORITY  START WITH id in
+				(
+				<!-- 查询所有满足条件（必填：数据日期）的报送表
+				TODO 报送管理-报文管理 添加查询条件【是否通过】(正在确认) -->
+					<choose>
+				    	<when test="ispass == null or ispass == ''">
+				    		select id
+							from (select t.*, to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD') as thedate from user_authority t)
+							where bitand(decode(thedate, last_day(thedate), power(2, extract(month from thedate)), 0) + 1, mask) > 0
+							<if test="bm != null and bm != ''">
+								and TABLENAME like '%${bm}%'
+							</if>
+							<if test="ywm != null and ywm != ''">
+								and CODE_VALUE like '%${ywm}%'
+							</if>
+				    	</when>
+				    	<otherwise>
+				    		select 
+								ua.id 
+							from 
+								(select t.*, to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD') as thedate from user_authority t) ua,
+								GENERATEREPORT gp
+							where 
+								bitand(decode(ua.thedate, last_day(ua.thedate), power(2, extract(month from ua.thedate)),0) + 1,ua.mask) > 0
+								and gp.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+								and ua.CODE_KEY = gp.TABLENAME
+								<choose>
+							    	<when test="ispass == 'true'">
+							    		and gp.BIAOSHI in ('1','3','5')
+							    	</when>
+							    	<when test="ispass == 'false'">
+							    		and gp.BIAOSHI in ('2','4','6','66')
+							    	</when>
+							   	</choose>
+			  					<if test="bm != null and bm != ''">
+									and ua.TABLENAME like '%${bm}%'
+								</if>
+								<if test="ywm != null and ywm != ''">
+									and ua.CODE_VALUE like '%${ywm}%'
+								</if>
+				    	</otherwise>
+				   	</choose>
+				) 
+			<!-- 查询报送表的父级节点 -->
+				 CONNECT BY PRIOR pid = id
+			)
+		) T
+	<!-- 查询报送标识 -->
+		left join (SELECT * FROM GENERATEREPORT WHERE SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')) G 
+			on T.CODE_KEY = G.TABLENAME
+		order by T.ID 
+		
+
+		   
+	</select>
+	
+	<update id="updateGENERATEREPORT">
+		update GENERATEREPORT set BIAOSHI = '66' where TABLENAME = #{TABLENAME,jdbcType=DATE} and  SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+	</update>
+	
+	<!-- 查询打回的报文（
+		sjrq：数据日期；
+		ywbm：业务编码；
+		ywmc：业务名称；
+		ywmcLike：业务名称（前后模糊查询）；
+		tablename：表名；
+		biaoshi：标识；
+		reporterUsername：上报者用户名；
+		reporterName：上报者姓名；
+		repulseDateStartTime：打回开始查询日期；
+		repulseDateEndTime：打回结束查询日期；
+		isFinished：打回是否已被处理(布尔型)；
+		finishDateStartTime：打回被处理开始查询日期；
+		finishDateEndTime：打回被处理开始结束日期；） -->
+	<select id="selectRepulseReport" resultType="Map" parameterType="Map">
+		select 
+			to_char(sjrq,'yyyy-mm-dd') "sjrq",
+			ywbm "ywbm",
+			ywmc "ywmc",
+			tablename "tablename",
+			biaoshi "biaoshi",
+			reporter_username "reporter_username",
+			reporter_name "reporter_name",
+			to_char(repulse_date,'yyyy-mm-dd hh24:mi:ss') "repulse_date",
+			biaoshi_desc "biaoshi_desc",
+			to_char(finish_date,'yyyy-mm-dd hh24:mi:ss') "finish_date"
+		from REPULSE_REPORT
+		<where>
+			<if test="sjrq != null and sjrq != ''">
+		     	and sjrq = to_date(#{sjrq},'yyyy-mm-dd')
+			</if>
+			<if test="ywbm != null and ywbm != ''">
+		     	and ywbm = #{ywbm}
+			</if>
+			<if test="ywmc != null and ywmc != ''">
+		     	and ywmc = #{ywmc}
+			</if>
+			<if test="ywmcLike != null and ywmcLike != ''">
+		     	and ywmc like CONCAT(CONCAT('%',#{ywmcLike}),'%')
+			</if>
+			<if test="tablename != null and tablename != ''">
+		     	and tablename = #{tablename}
+			</if>
+			<if test="biaoshi != null and biaoshi != ''">
+		     	and biaoshi = #{biaoshi}
+			</if>
+			<if test="reporterUsername != null and reporterUsername != ''">
+		     	and reporter_username = #{reporterUsername}
+			</if>
+			<if test="reporterName != null and reporterName != ''">
+		     	and reporter_name = #{reporterName}
+			</if>
+			<if test="repulseDateStartTime != null and repulseDateStartTime != ''">
+		     	and repulse_date <![CDATA[>=]]> to_date(#{repulseDateStartTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test="repulseDateEndTime != null and repulseDateEndTime != ''">
+		     	and repulse_date <![CDATA[<=]]> to_date(#{repulseDateEndTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<choose>
+				<!-- 查询已完成的数据 -->
+				<when test="isFinished != null and 'true'.toString() == isFinished.toString()">
+					and finish_date is not null
+			     	<if test="finishDateStartTime != null and finishDateStartTime != ''">
+				     	and finish_date <![CDATA[>=]]> to_date(#{finishDateStartTime},'yyyy-mm-dd hh24:mi:ss')
+					</if>
+					<if test="finishDateEndTime != null and finishDateEndTime != ''">
+				     	and finish_date <![CDATA[<=]]> to_date(#{finishDateEndTime},'yyyy-mm-dd hh24:mi:ss')
+					</if>
+				</when>
+				<!-- 查询未完成的数据 -->
+				<when test="isFinished != null and 'false'.toString() == isFinished.toString()">
+					and finish_date is null
+				</when>
+			</choose>
+		 </where>
+	</select>
+	
+	<!-- 初次打回报文时使用 -->
+	<insert id="insertRepulseReport" parameterType="Map">
+		insert into REPULSE_REPORT (SJRQ,YWBM,YWMC,TABLENAME,BIAOSHI,BIAOSHI_DESC,REPORTER_USERNAME,REPORTER_NAME,REPULSE_DATE) 
+		values (to_date(#{sjrq},'yyyy-mm-dd'),#{ywbm},#{ywmc},#{tablename},#{biaoshi},#{biaoshi_desc},#{reporter_username},#{reporter_name},sysdate)
+	</insert>
+	
+	<!-- 再次打回报文时使用 -->
+	<update id="repulseReportAgain" parameterType="Map">
+		UPDATE REPULSE_REPORT 
+		SET 
+			BIAOSHI = #{biaoshi},
+			BIAOSHI_DESC = #{biaoshi_desc},
+			REPORTER_USERNAME = #{reporter_username},
+			REPORTER_NAME = #{reporter_name},
+			REPULSE_DATE = sysdate,
+			FINISH_DATE = null
+		WHERE SJRQ = to_date(#{sjrq},'yyyy-mm-dd') and YWBM = #{ywbm}
+	</update>
+	
+	<!-- 被打回的报文已重新上报时使用 -->
+	<update id="updateRepulseReportFinishDate" parameterType="Map">
+		update REPULSE_REPORT set FINISH_DATE = sysdate where SJRQ = to_date(#{sjrq},'yyyy-mm-dd') and YWBM = #{ywbm}
+	</update>
+</mapper>

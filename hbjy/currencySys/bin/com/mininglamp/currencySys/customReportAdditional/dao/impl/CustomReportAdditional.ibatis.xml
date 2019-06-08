@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customReportAdditional">
+<!-- ======================================== 数据源管理 START ======================================== -->
+	<select id="selectDatasource" resultType="Map" parameterType="Map">
+		select t.* 
+		from REPORT_DATASOURCE_MANAGER t 
+		<where>
+			<if test="dname_like != null and dname_like != ''">
+				t.dname like concat(concat('%',#{dname_like}),'%')
+			</if>
+			<if test="dname != null and dname != ''">
+				t.dname = #{dname}
+			</if>
+		</where>
+	</select>
+<!-- ======================================== 数据源管理 END ======================================== -->
+	
+<!-- ======================================== 补录表维护 START ======================================== -->
+	<resultMap type="java.util.Map" id="selectTableResultMap">
+		<result column="TABLE_NO" property="TABLE_NO"/>
+		<result column="TABLE_NAME" property="TABLE_NAME"/>
+		<result column="DATASOURCE" property="DATASOURCE"/>
+		<result column="CREATE_DATE" property="CREATE_DATE"/>
+		<result column="DATA_CONFIG" property="DATA_CONFIG" jdbcType="CLOB" javaType = "java.lang.String"/>
+	</resultMap>
+	<select id="selectTable" resultMap="selectTableResultMap" parameterType="Map">
+		select 
+			t.table_no,
+			t.table_name,
+			t.datasource,
+			to_char(t.create_date,'yyyy-mm-dd hh24:mi:ss') create_date,
+			t.data_config
+		from REPORT_TABLE_MANAGER t 
+	    <where>
+	    	<if test="tableNo_like != null and tableNo_like != ''">
+		    	and t.table_no like concat(concat('%',#{tableNo_like}),'%')
+		    </if>
+		    <if test="tableNo != null and tableNo != ''">
+		    	and t.table_no = #{tableNo}
+		    </if>
+		    <if test="tableName_like != null and tableName_like != ''">
+		    	and t.table_name like concat(concat('%',#{tableName_like}),'%')
+		    </if>
+		    <if test="tableName != null and tableName != ''">
+		    	and t.table_name = #{tableName}
+		    </if>
+		    <if test="datasource != null and datasource != ''">
+		    	and t.datasource = #{datasource}
+		    </if>
+	    </where>
+	</select>
+	
+	<!--批量删除 -->
+	<delete id="deleteTableInfo" parameterType="Map">
+		delete from REPORT_TABLE_MANAGER t 
+		<where>
+			<if test="deleted != null and deleted != ''">
+				<foreach collection="deleted" item="item" index="index"
+					separator=" ">
+					or (t.TABLE_NO = #{item.TABLE_NO,jdbcType=VARCHAR} and t.DATASOURCE = #{item.DATASOURCE,jdbcType=VARCHAR})
+				</foreach>
+			</if>
+		</where>
+	</delete>
+	
+	<!-- 补录表新增 -->
+	<insert id="insertTableInfo" parameterType="Map">
+		insert into REPORT_TABLE_MANAGER (
+			<if test="table_no != null and table_no != ''">table_no,</if>
+			<if test="table_name != null and table_name != ''">table_name,</if>
+			<if test="datasource != null and datasource != ''">datasource,</if>
+			<if test="data_config != null and data_config != ''">data_config,</if>
+			create_date
+		) values (
+			<if test="table_no != null and table_no != ''">#{table_no},</if>
+			<if test="table_name != null and table_name != ''">#{table_name},</if>
+			<if test="datasource != null and datasource != ''">#{datasource},</if>
+			<if test="data_config != null and data_config != ''">#{data_config,jdbcType=CLOB},</if>
+			sysdate
+		)
+	</insert>
+	
+	<!-- 补录表更新 -->
+	<update id="updateTableInfo" parameterType="Map">
+		update REPORT_TABLE_MANAGER 
+		<set> 
+			<if test="table_name != null and table_name != ''">table_name = #{table_name},</if>
+			<if test="data_config != null and data_config != ''">data_config = #{data_config,jdbcType=CLOB},</if>
+		</set>
+		where table_no = #{table_no} and datasource = #{datasource} 
+	</update>
+<!-- ======================================== 补录表维护 END ======================================== -->
+	
+<!-- ======================================== 模板定制 START ======================================== -->
+	<resultMap type="java.util.Map" id="selectTemplateResultMap">
+		<result column="TEMPLATE_NAME" property="TEMPLATE_NAME"/>
+		<result column="TABLE_NAME" property="TABLE_NAME"/>
+		<result column="BR_NO" property="BR_NO"/>
+		<result column="RESPONSIBLER" property="RESPONSIBLER"/>
+		<result column="REMARK" property="REMARK"/>
+		<result column="AUTHORITY" property="AUTHORITY"/>
+		<result column="STATE" property="STATE"/>
+		<result column="AUTHORITY_JGMC" property="AUTHORITY_JGMC"/>
+		<result column="DATA_CONFIG" property="DATA_CONFIG" jdbcType="CLOB" javaType = "java.lang.String"/>
+	</resultMap>
+	<select id="selectTemplate" resultMap="selectTemplateResultMap" parameterType="Map">
+		select 
+			 t.template_name,
+		     t.table_name,
+		     t.br_no,
+		     t.responsibler,
+		     t.remark,
+		     t.authority,
+		     t.state,
+		     t.data_config,
+		     t.authority_jgmc
+		from REPORT_TEMPLATE_MANAGER t 
+		<where>
+			<if test="templateName_like != null and templateName_like != ''">
+				and t.template_name like concat(concat('%',#{templateName_like}),'%')
+			</if>
+			<if test="templateName != null and templateName != ''">
+				and t.template_name = #{templateName}
+			</if>
+			<if test="tableName_like != null and tableName_like != ''">
+				and t.table_name like concat(concat('%',#{tableName_like}),'%')
+			</if>
+			<if test="tableName != null and tableName != ''">
+				and t.table_name = #{tableName}
+			</if>
+		</where>
+	</select>
+	
+	<!--批量删除 -->
+	<delete id="deleteTemplateInfo" parameterType="Map">
+		delete from REPORT_TEMPLATE_MANAGER t
+		<where>
+			<if test="deleted != null and deleted != ''">
+				<foreach collection="deleted" item="item" index="index"
+					separator=" ">
+					or t.TEMPLATE_NAME = #{item.TEMPLATE_NAME,jdbcType=VARCHAR}
+				</foreach>
+			</if>
+		</where>
+	</delete>
+	
+	<!-- 模板新增 -->
+	<insert id="insertTemplateInfo" parameterType="Map">
+		insert into REPORT_TEMPLATE_MANAGER (
+			<if test="template_name != null and template_name != ''">template_name,</if>
+			<if test="table_name != null and table_name != ''">table_name,</if>
+			<if test="br_no != null and br_no != ''">br_no,</if>
+			<if test="responsibler != null and responsibler != ''">responsibler,</if>
+			<if test="remark != null and remark != ''">remark,</if>
+			<if test="authority != null and authority != ''">authority,</if>
+			<if test="authority_jgmc != null and authority_jgmc != ''">authority_jgmc,</if>
+			<if test="data_config != null and data_config != ''">data_config,</if>
+			state
+		) values (
+			<if test="template_name != null and template_name != ''">#{template_name},</if>
+			<if test="table_name != null and table_name != ''">#{table_name},</if>
+			<if test="br_no != null and br_no != ''">#{br_no},</if>
+			<if test="responsibler != null and responsibler != ''">#{responsibler},</if>
+			<if test="remark != null and remark != ''">#{remark},</if>
+			<if test="authority != null and authority != ''">#{authority},</if>
+			<if test="authority_jgmc != null and authority_jgmc != ''">#{authority_jgmc},</if>
+			<if test="data_config != null and data_config != ''">#{data_config,jdbcType=CLOB},</if>
+			'1'
+		)
+	</insert>
+	
+	<!-- 模板更新 -->
+	<update id="updateTemplateInfo" parameterType="Map">
+		update REPORT_TEMPLATE_MANAGER 
+		<set> 
+			<if test="table_name != null and table_name != ''">table_name = #{table_name},</if>
+			<if test="br_no != null and br_no != ''">br_no = #{br_no},</if>
+			<if test="responsibler != null and responsibler != ''">responsibler = #{responsibler},</if>
+			<if test="remark != null and remark != ''">remark = #{remark},</if>
+			<if test="authority != null and authority != ''">authority = #{authority},</if>
+			<if test="state != null and state != ''">state = #{state},</if>
+			<if test="authority_jgmc != null and authority_jgmc != ''">authority_jgmc = #{authority_jgmc},</if>
+			<if test="data_config != null and data_config != ''">data_config = #{data_config,jdbcType=CLOB},</if>
+		</set>
+		where template_name = #{template_name}
+	</update>
+<!-- ======================================== 模板定制 END ======================================== -->
+</mapper>

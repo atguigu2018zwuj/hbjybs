@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="userMapper">
+
+	<!-- 获取权限 -->
+  <select id="getUsermanager" resultType="Map" parameterType="Map">
+  	select 
+  	T.ID ID,
+    T.YH_NAME YH_NAME,
+  	T.YH_PWD YH_PWD,
+  	T.NAME NAME,
+  	T.TELEPH TELEPH,
+  	T.SSBM SSBM,
+  	T.AUTHORITY AUTHORITY,
+  	T.DWBM,
+  	T.LOGIN_TIMES LOGIN_TIMES,
+  	S.JRJGBM DW_CODE,
+  	S.JRJGMC DW_NAME,
+  	S.JGJB DW_JB,
+  	S.BR_NO NBJGH,
+  	S.JGJB ALEVEL,
+  	S.SJGLJGNBJGH SJNBJGH,
+  	T.SSJG SSJG
+  	from
+  	USER_MANAGER T 
+  	LEFT JOIN hbjyods.jrjgxx S on S.BR_NO =T.DWBM 
+  	WHERE 1=1
+  	<if test="loginName != null and loginName != ''">
+  		and T.YH_NAME = #{loginName}
+  	</if>
+  </select>
+
+  <update id="updateUsermanager" parameterType="Map">
+  	update USER_MANAGER t set t.IP = #{ip} where t.YH_NAME = #{loginName} 
+  </update>
+  
+  <!-- 获取首页树形 -->
+  <!-- <select id="getUSER_AUTHORITY" resultType="map" parameterType="map">
+		select 
+		T.CODE_KEY "key",
+		T.CODE_VALUE "text",
+		T.ID "id",
+		T.PID "pid"
+		from (
+			select *
+			from (
+			select tt.*, LEVEL as tree_level, CONNECT_BY_ISLEAF as tree_leaf from USER_AUTHORITY tt start with pid = '0' connect by prior id = pid
+			) 
+			where (markingcode is not null) or (markingcode is null and tree_leaf = 0)
+		) T
+		where T.PID = #{ID,jdbcType=VARCHAR }
+		<if test="authority != null and authority != ''">
+			and T.CODE_KEY in
+			<foreach collection="authority" item="item" index="index" separator="," open="(" close=")"> 
+				#{item}
+			</foreach>
+		</if>
+	</select> -->
+	
+	 <!-- 获取首页树形 -->
+	<select id="getUSER_AUTHORITY" resultType="map" parameterType="map">
+		select 
+		T.CODE_KEY "key",
+		T.CODE_VALUE "text",
+		T.ID "id",
+		T.PID "pid"
+		FROM
+		<choose>
+			<when test="authority != null and authority != ''">
+				USER_AUTHORITY T
+				where 1=1
+				and T.id in (
+					SELECT  distinct(id) FROM USER_AUTHORITY 
+						START WITH id 
+						in(SELECT ID FROM USER_AUTHORITY WHERE 1=1 
+							and CODE_KEY in
+							<foreach collection="authority" item="item" index="index" separator="," open="(" close=")"> 
+								#{item}
+							</foreach>
+						) 
+						CONNECT BY PRIOR pid = id
+				 )
+			</when>
+			<otherwise>
+				(
+				select tt.*, LEVEL as tree_level, CONNECT_BY_ISLEAF as tree_leaf from USER_AUTHORITY tt start with pid = '0' connect by prior id = pid
+				) T
+				where (markingcode is not null) or (markingcode is null and tree_leaf = 0) or (pid not like '1%')
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	
+	
+	<!-- 插入操作日志 -->
+	<insert id="insertOperationLog" parameterType="map">
+		insert into OPERATIONLOG(SJRQ,NAME,NR) values 
+		(	to_date(#{SJRQ,jdbcType=DATE}, 'YYYY-MM-DD') ,
+		    #{NAME,jdbcType=VARCHAR } , 
+		    #{NR,jdbcType=VARCHAR } 
+		 )
+	</insert>
+	
+	<!-- 获取操作日志-->
+	<select id="getOperationLog" resultType="map" parameterType="map">
+		select SJRQ,NAME,NR
+		from OPERATIONLOG where 1=1
+	</select>
+
+	<!-- 根据用户名获取用户的所属机构信息 -->
+	<select id="getUserJrjgxxByUsername" resultType="map" parameterType="map">
+		select
+			um.id "id",
+			um.yh_name "username",
+			um.teleph "teleph",
+			um.name "name",
+			um.ssbm "ssbm",
+			um.ssjg "ssjg",
+			um.ip "ip",
+			um.smsnotice "smsnotice",
+			j.jrjgbm "jrjgbm",
+			j.br_no "nbjgh",
+			j.jgjb "jgjb",
+			j.jrjgmc "jrjgmc"
+		from user_manager um
+		inner join hbjyods.jrjgxx j on um.dwbm=j.br_no
+		where um.yh_name = #{username}
+	</select>
+	
+	<!-- 更新用户的登录次数（加1） -->
+	<update id="updateLoginTimes" parameterType="map">
+		update user_manager set login_times = (select (login_times+1) new_times from user_manager where yh_name = #{username}) where yh_name = #{username}
+	</update>
+	
+	<!-- 根据用户名获取用户的所属机构信息 -->
+	<select id="getUserPrsnInfoByUsername" resultType="map" parameterType="map">
+		SELECT * FROM (
+		  SELECT
+		    A.*,
+		    ROWNUM RN
+		  FROM (
+		    select 
+		      um.yh_name "username",
+		      um.name "name",
+		      prsn.sex "sex",
+		      um.teleph "teleph",
+		      tbi.idno "card_id",
+		      jrjgxx.jrjgbm "jrjgbm",
+	          jrjgxx.jrjgmc "jrjgmc",
+	          um.dwbm "nbjgh",
+	          jrjgxx.jgjb "jgjb",
+		      prsn.gw "gw",
+		      prsn.sfqdhgzs "sfqdhgzs",
+		      to_char(prsn.qdzssj,'yyyy-mm-dd') "qdzssj",
+		      to_char(prsn.zssxsj,'yyyy-mm-dd') "zssxsj",
+		      prsn.sjrq "sjrq"
+		    from user_manager um
+		    left join hbjyods.TUA_TUABUINFO tbi on tbi.userno = um.yh_name
+		    left join SPECIAL_PRSN prsn on tbi.IDNO = prsn.card_id
+		    left join hbjyods.jrjgxx jrjgxx on um.dwbm = jrjgxx.BR_NO
+		    where um.yh_name = #{username}
+		    order by prsn.sjrq desc
+		  ) A
+		)  
+		WHERE RN = 1
+	</select>
+	
+	<!-- 根据内部机构号获取下级机构信息tree -->
+	<select id="selectSubordinateOrgTree" resultType="map" parameterType="map">
+	    SELECT
+	        T.br_no "id",
+	        T.jrjgmc "name",
+	        T.jrjgbm "num",
+	        T.jgjb "jgjb",
+	        T.sjgljgnbjgh "pId"
+	    FROM
+	        HBJYODS.jrjgxx T
+	    where T.br_no in (select BR_NO from HBJYODS.jrjgxx h
+	        start with h.BR_NO = #{nbjgh} connect by h.SJGLJGNBJGH = prior h.BR_NO)
+	        and T.jgjb in ((select jgjb from HBJYODS.jrjgxx where BR_NO = #{nbjgh}),(select (to_number(jgjb) + 1) jgjb  from HBJYODS.jrjgxx where BR_NO = #{nbjgh}))
+	    order by T.jgjb
+	</select>
+	
+	<!-- 根据code_key取得所有上级目录 -->
+	<select id="getUserAuthorityParent" resultType="map" parameterType="map">
+		SELECT 
+		  ua.code_key,
+		  ua.code_value,
+		  ua.a_level,
+		  ua.pid,
+		  ua.id,
+		  ua.tablename,
+		  ua.markingcode,
+		  ua.issgbs,
+		  ua.table_nbjgh,
+		  ua.mask
+		FROM user_authority ua
+		START WITH ua.code_key = #{codeKey}
+		CONNECT BY ua.id = PRIOR ua.pid
+		ORDER BY ua.a_level
+	</select>
+</mapper>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="insertDataDaoImpl">
+	<insert id="insertData" parameterType="map" >
+		insert  into  ${tableName}
+	     <foreach collection="last_row" open="(" close=")" separator="," item="type">
+                ${type}
+         </foreach> 
+		values
+		<foreach collection="configList" open="(" close=")" separator="," item="item">
+			<choose>  
+				<when test='item.FIELD_TYPE == "date" || item.FIELD_TYPE == "DATE" '>  
+					to_date(#{${item.FIELD_ID}, jdbcType=VARCHAR},'YYYY-MM-DD')
+				</when>  
+				<otherwise>  
+					<choose>
+					<when test='item.FIELD_TYPE == "time" || item.FIELD_TYPE == "TIME" '>  
+						to_date(#{${item.FIELD_ID}, jdbcType=VARCHAR},'YYYY-MM-DD HH24:MI:SS')
+					</when> 
+					<otherwise>
+						#{${item.FIELD_ID}, jdbcType=VARCHAR}
+					</otherwise>
+					</choose> 
+				</otherwise>  
+			</choose>
+         </foreach> 
+	</insert>
+	<insert id="insertBsglData" parameterType="map" >
+	        insert into BSGL (SJRQ,WJBM,NBJGH,USERNAME,YMDHMS,CONTENT,CODE) 
+	        values( to_date(#{SJRQ}, 'YYYY-MM-DD') , #{fileName} ,#{nbjgh},#{USERNAME}, sysdate,'导入成功  ,共1条数据', USER_MANAGER_ID.nextval ) 
+	</insert>
+	<!-- 获取当前用户的子类 -->
+	<select id="getAllAuth" resultType="Map" parameterType="Map">
+		select BR_NO nbjgh from hbjyods.JRJGXX m
+				start with m.BR_NO = #{nbjgh,jdbcType=VARCHAR } connect by m.SJGLJGNBJGH = prior m.BR_NO
+	</select>
+	
+	<!-- 获取表中所对应的内部机构号 -->
+	<select id="getTable_nbjgh" resultType="Map" parameterType="Map">
+		select  tablename,table_nbjgh from USER_AUTHORITY where tablename is not null and tablename = LOWER(#{tableName,jdbcType=VARCHAR })
+	</select>
+	<insert id="insertDateAnnounce" parameterType="map">
+	
+	</insert>
+	<insert id="insertSelective" parameterType="map">
+    insert into t_announcement
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="announcementTitle != null">
+        announcement_title,
+      </if>
+      <if test="publishRange != null">
+        publish_range,
+      </if>
+      <if test="announcementContent != null">
+        announcement_content,
+      </if>
+      <if test="annexName != null">
+        annex_name,
+      </if>
+      <if test="annexUrl != null">
+        annex_url,
+      </if>
+      <if test="viewNum != null">
+        view_num,
+      </if>
+      <if test="createBy != null">
+        create_by,
+      </if>
+      <if test="updateBy != null">
+        update_by,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="JRJGMC != null">
+        JRJGMC,
+      </if>
+      <if test="userName != null">
+        user_name,
+      </if>
+      <if test="message != null">
+        message,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="announcementTitle != null">
+        #{announcementTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="publishRange != null">
+        #{publishRange,jdbcType=VARCHAR},
+      </if>
+      <if test="announcementContent != null">
+        #{announcementContent,jdbcType=VARCHAR},
+      </if>
+      <if test="annexName != null">
+        #{annexName,jdbcType=VARCHAR},
+      </if>
+      <if test="annexUrl != null">
+        #{annexUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="viewNum != null">
+        #{viewNum,jdbcType=INTEGER},
+      </if>
+      <if test="createBy != null">
+        #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateBy != null">
+        #{updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="JRJGMC != null">
+        #{JRJGMC,jdbcType=VARCHAR},
+      </if>
+      <if test="userName != null">
+        #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="message != null">
+        #{message,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <insert id="insertfgwjSelective" parameterType="map">
+        insert into t_regulation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="regulationTitle != null">
+        regulation_title,
+      </if>
+      <if test="publishRange != null">
+        organization,
+      </if>
+      <if test="username != null">
+        creator,
+      </if>
+      <if test="createTime != null">
+      create_time,
+      </if>
+      <if test="annexName != null">
+      annex_name,
+      </if>
+      <if test="annexUrl != null">
+      annex_url,
+      </if>
+     </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="regulationTitle != null">
+        #{regulationTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="publishRange != null">
+        #{publishRange,jdbcType=INTEGER},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="annexName != null">
+        #{annexName,jdbcType=VARCHAR},
+      </if>
+      <if test="annexUrl != null">
+        #{annexUrl,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>

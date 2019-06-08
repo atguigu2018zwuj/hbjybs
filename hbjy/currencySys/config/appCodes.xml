@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<appCodes>
+	<config>
+		<property name="enable">true</property>
+	</config>
+	<list>
+		<!-- 属性说明：code=appcode,name=应用名称,ip=单个请求地址,ips=一组请求地址 -->
+		<appCode code="10001" name="reportmgr" ip="21.32.3.70" />
+		<appCode code="10002" name="hbpost" ip="21.32.3.70" />
+		<appCode code="10003" name="psbcias" ip="21.32.3.70" />
+		<appCode code="10004" name="predict" ip="21.32.3.70" />
+		<appCode code="10005" name="authmgr" ip="21.32.3.70" />
+		<appCode code="10006" name="mws" ip="21.32.3.70" />
+		<appCode code="10007" name="surveyrpt" ip="21.32.3.70" />
+		<appCode code="10008" name="empmonitor" ip="21.32.3.70" />
+		<appCode code="10009" name="bhoserver" ip="21.32.3.70" />
+	</list>
+</appCodes>

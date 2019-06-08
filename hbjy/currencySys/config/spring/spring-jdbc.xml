@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:jdbc="http://www.springframework.org/schema/jdbc"  
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+	<!-- 配置文件 mongo-->
+	<context:property-placeholder location="classpath:ibatis/jdbc.properties" />
+	<!-- 数据源配置,使用ibatis连接oracle-->
+	<bean id="oracleDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="driverClassName" value="${oracle.connection.driverClass}"></property> 
+		<property name="url" value="${oracle.connection.jdbcUrl}"></property>
+        <property name="username" value="${oracle.connection.username}"></property>
+        <property name="password" value="${oracle.connection.password}"></property>
+        <property name="validationQuery" value="${oracle.validationQuery}"></property>
+        <!-- 初始化连接池大小 -->
+        <property name="initialSize" value="${druid.initialSize}"></property>
+        <!-- 最大连接数量 -->
+        <property name="maxActive" value="${druid.maxActive}"></property>
+        <!-- 连接最小空闲 -->
+        <property name="minIdle" value="${druid.minIdle}"></property>
+        <!-- 获取连接最大等待时间 -->
+        <property name="maxWait" value="${druid.maxWait}"></property>
+        <property name="testOnBorrow" value="${druid.testOnBorrow}"></property>
+        <property name="testOnReturn" value="${druid.testOnReturn}"></property>
+        <property name="testWhileIdle" value="${druid.testWhileIdle}"></property>
+        <!-- 间隔多久检测一次，检测到需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="${druid.timeBetweenEvictionRunsMillis}"></property>
+        <!-- 一个连接在地址池中最小生存时间，单位毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="${druid.minEvictableIdleTimeMillis}"></property>
+        <!-- 打开removeAbandoned功能 -->
+        <property name="removeAbandoned" value="${druid.removeAbandoned}"></property>
+        <!-- 30分钟 -->
+        <property name="removeAbandonedTimeout" value="${druid.removeAbandonedTimeout}"></property>
+        <!-- 关闭abandoned连接时输出日志 -->
+        <property name="logAbandoned" value="${druid.logAbandoned}"></property>
+        <!-- 监控数据库 -->
+        <property name="filters" value="${druid.filters}"></property>
+        <!-- <property name="connectionProperties" value="config.decrypt=true;config.decrypt.key=${oracle.connection.publicKey}"></property> -->
+	</bean>
+	
+	<!-- oracle Sql sesion factory -->
+	<bean id="oracleSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="configLocation" value="classpath:ibatis/oracle-sqlmap-config.xml" />  
+        <property name="dataSource" ref="oracleDataSource" /> 
+        <property name="plugins">
+	    <array>
+	      <bean class="com.github.pagehelper.PageHelper">
+	        <property name="properties">
+	          <!--使用下面的方式配置参数，一行配置一个 -->
+	          <value>
+	            offsetAsPageNum=true
+	            reasonable=true
+	          </value>
+	        </property>
+	      </bean>
+	    </array>
+	   </property>
+    </bean>
+    <!-- 用于热加载mybatis配置文件 -->
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+    	<constructor-arg index="0" ref="oracleSqlSessionFactory"></constructor-arg>
+    </bean>
+    <bean id="sqlSessionCache" class="com.mininglamp.currencySys.common.SqlSessionCache" init-method="refreshMapper">
+    	<property name="configLocation" value="classpath:ibatis/oracle-sqlmap-config.xml"></property>
+    	<property name="oracleSqlSessionFactory" ref="oracleSqlSessionFactory"></property>
+    </bean>
+    
+    <!-- spring事务管理配置 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    	<property name="dataSource" ref="oracleDataSource"></property>
+    </bean>
+    
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+    	<tx:attributes>
+    		<tx:method name="add*" propagation="REQUIRED" />
+    		<tx:method name="save*" propagation="REQUIRED" />
+    		<tx:method name="insert*" propagation="REQUIRED" />
+    		<tx:method name="update*" propagation="REQUIRED" />
+    		<tx:method name="modify*" propagation="REQUIRED" />
+    		<tx:method name="create" propagation="REQUIRED" />
+    		<tx:method name="delete*" propagation="REQUIRED" />
+    		<tx:method name="del*" propagation="REQUIRED" />
+    		<tx:method name="analyze*" propagation="REQUIRED" />
+    		
+    		<tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+    		<tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+    		<tx:method name="select*" propagation="SUPPORTS" read-only="true" />
+    		<tx:method name="query*" propagation="SUPPORTS" read-only="true" />
+    		
+    		<tx:method name="*" read-only="true" />
+    	</tx:attributes>
+    </tx:advice>
+    
+    <aop:config>
+    	<aop:pointcut id="txPointcut" expression="execution(* com.mininglamp.currencySys.*.service..*.*(..))" />
+    	<aop:advisor pointcut-ref="txPointcut" advice-ref="txAdvice" />
+    </aop:config>
+    
+    <context:annotation-config />
+	
+</beans>

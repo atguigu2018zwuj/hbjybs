@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReportManageMapper">
+
+	<!-- 文件记录查询 -->
+	<!-- <select id="fileManageData" resultType="map" parameterType="map"> select 
+		T.BR_NO "key", T.jrjgmc "text", T.jrjgbm "jrjgbm", T.BR_NO "id", T.sjgljgnbjgh 
+		"pid" from ( SELECT m.BR_NO, m.jrjgmc, m.jrjgbm, m.jgjb, m.sjgljgnbjgh FROM 
+		JRJGXX m where 1=1 <choose> <when test="bsdwBm != null and bsdwBm != ''"> 
+		and m.BR_NO = #{bsdwBm} <include refid="isReport"></include> </when> <otherwise> 
+		and m.SJGLJGNBJGH = #{ID,jdbcType=VARCHAR } <include refid="isReport"></include> 
+		</otherwise> </choose> ) T </select> -->
+
+	<select id="fileManageData" resultType="map" parameterType="map">
+		SELECT
+		m.BR_NO "id",
+		m.BR_NO "key",
+		m.jrjgmc "text",
+		m.jrjgbm "jrjgbm",
+		m.jgjb,
+		m.sjgljgnbjgh "pid",
+		case when #{sjzt} ='1' then '已上报'
+		when #{sjzt} ='2' then '未上报'
+		end "sjzt"
+		FROM hbjyods.JRJGXX m
+		where 1=1
+		<choose>
+			<when test="bsdwBm != null and bsdwBm != ''">
+				<include refid="isReport"></include>
+			</when>
+			<otherwise>
+				<include refid="isReport"></include>
+			</otherwise>
+		</choose>
+		order by m.SX
+		<!-- SELECT m.BR_NO "id", m.BR_NO "key", m.jrjgmc "text", m.jrjgbm "jrjgbm", 
+			m.jgjb, m.sjgljgnbjgh "pid" FROM hbjyods.JRJGXX m where 1 = 1 and m.BR_NO 
+			in (select distinct br_no from hbjyods.jrjgxx h start with br_no in (select 
+			distinct nbjgh from bsgl where 1 = 1 and SJRQ = TO_DATE( #{bsrq},'yyyy-mm-dd') 
+			and WJBM = #{bbbm} ) connect by br_no = prior sjgljgnbjgh) -->
+	</select>
+
+	<sql id="isReport">
+		<choose>
+			<when test="sjzt == 1">
+				and m.BR_NO in
+				(
+				select distinct br_no from hbjyods.jrjgxx start with br_no in
+				(
+				select distinct nbjgh from bsgl where 1=1
+				<if test="bsrq != null and bsrq != ''">
+					and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd')
+				</if>
+				<if test="bbbm != null and bbbm != ''">
+					and WJBM = #{bbbm}
+				</if>
+				)
+				connect by br_no = prior sjgljgnbjgh
+				)
+			</when>
+			<otherwise>
+				<!-- and m.BR_NO in ( select distinct br_no from hbjyods.jrjgxx h start 
+					with br_no in ( select distinct br_no from ( select distinct br_no from hbjyods.jrjgxx 
+					h start with br_no in ( select distinct dwbm from user_manager ) connect 
+					by br_no = prior sjgljgnbjgh ) t where t.br_no not in ( select distinct br_no 
+					from hbjyods.jrjgxx start with br_no in ( select distinct nbjgh from bsgl 
+					where 1=1 <if test="bsrq != null and bsrq != ''"> and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd') 
+					</if> <if test="bbbm != null and bbbm != ''"> and WJBM = #{bbbm} </if> ) 
+					connect by br_no = prior sjgljgnbjgh ) ) connect by br_no = prior sjgljgnbjgh 
+					) -->
+
+
+				and m.BR_NO in
+				(
+				select distinct br_no from
+				(
+				select distinct br_no from hbjyods.jrjgxx h
+				start with br_no in
+				(
+				select distinct f.dwbm from user_manager f
+				LEFT JOIN HBJYODS.jrjgxx S on S.BR_NO =f.DWBM 
+		        where 1=1
+				<if test="nbjgh != '' and nbjgh != null">
+			    and f.DWBM in (select BR_NO from HBJYODS.jrjgxx c
+                    start with c.BR_NO =  #{nbjgh} connect by c.SJGLJGNBJGH = prior c.BR_NO)
+                and f.yh_name != #{username}    
+		        </if>
+				) connect by br_no = prior sjgljgnbjgh
+				) t
+				where t.br_no not in
+				(
+				select distinct nbjgh from bsgl
+				where 1=1
+				<if test="bsrq != null and bsrq != ''">
+					and SJRQ =TO_DATE( #{bsrq},'yyyy-mm-dd')
+				</if>
+				<if test="bbbm != null and bbbm != ''">
+					and WJBM = #{bbbm}
+				</if>
+				)
+				)
+			</otherwise>
+		</choose>
+	</sql>
+
+	<!-- 上报单位父子编码 -->
+	<select id="zSbdw" resultType="map">
+		select DW_ID "dw_id",DW_NAME "dw_name" from CODE_SBDW
+		<where>
+			SJDW_ID = #{bsdwBm}
+		</where>
+		order by DQDM
+	</select>
+
+	<select id="sbdwAll" resultType="map">
+		select
+		s.dw_id,s.dw_name,c.code_value dwjb,IFNULL(s.sjdw_id,'--') sjdw_id,IFNULL(s.sjdw_name,'--')
+		sjdw_name,IFNULL(s.dqdm,'--') dqdm,IFNULL(s.bz,'--') bz
+		from zzrh_code_falv.sbdw_code s
+		left join zzrh_code_falv.code_dwjb c on c.code_key = s.dw_jb
+		order by s.dqdm,s.dw_jb;
+	</select>
+
+	<update id="updateHzzt" parameterType="map">
+		update
+		<if test="wjlx==3"> zzrh_falv.xzcf_info </if>
+		<if test="wjlx!=3"> zzrh_falv.xzxk_info </if>
+		set hzsbdw_id=#{bsdwBm},hzsbrq=#{bsrq},hzzt=#{hzzt},hzbh=#{wjbh}
+		<where>
+			wjbh in
+			<foreach item="item" index="index" collection="wjbhList"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</where>
+	</update>
+
+	<update id="thHzzt" parameterType="map">
+		update
+		<if test="wjlxbm==3"> zzrh_falv.xzcf_info </if>
+		<if test="wjlxbm!=3"> zzrh_falv.xzxk_info </if>
+		set hzsbdw_id=null,hzsbrq=null,hzzt='0',hzbh=null
+		<where>
+			hzbh = #{wjbh}
+		</where>
+	</update>
+	<delete id="deleteJl" parameterType="map">
+		delete from zzrh_falv.bs_file
+		<where>
+			wjbh = #{wjbh}
+		</where>
+	</delete>
+
+	<select id="findWjmcByWjbh" parameterType="map" resultType="map">
+		select wjmc from zzrh_falv.bs_file
+		<where>
+			wjbh = #{wjbh}
+		</where>
+	</select>
+
+	<!-- ************************************************************************************************************************************ -->
+
+	<select id="getBbmc" parameterType="map" resultType="map">
+		select CODE_KEY "code_key",CODE_VALUE "code_value"
+		from
+		(
+		select t.*, to_date(#{bsrq}, 'YYYY-MM-DD') as thedate from user_authority t
+		where 1=1
+		and ISSGBS = 1
+		and PID like '${sjlx}%'
+		<if test="authority != null and authority != ''">
+			and CODE_KEY in
+			<foreach collection="authority" item="item" index="index"
+				separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		)
+		<!-- where bitand(decode(thedate, last_day(thedate), power(2, extract(month 
+			from thedate)), 0) + 1, mask) > 0 -->
+	</select>
+
+	<select id="selectReporterInfo" parameterType="map" resultType="map">
+		select
+		b.sjrq "sjrq",
+		b.wjbm "wjbm",
+		b.wjmc "wjmc",
+		b.bszt "bszt",
+		b.code "code",
+		b.nbjgh "nbjgh",
+		b.username "username",
+		b.ymdhms "drrq",
+		b.content "sbsjmx",
+		um.id "id",
+		um.name "name",
+		um.teleph "teleph",
+		um.ssbm "ssbm",
+		um.ssjg "ssjg",
+		um.ip "ip",
+		um.dwbm "dwbm",
+		um.smsnotice "smsnotice"
+		from BSGL b
+		inner join user_manager um
+		on b.username = um.yh_name
+		<where>
+			<if test="sjrq != null and sjrq != ''">
+				and to_char(b.sjrq,'yyyyMMdd') = #{sjrq}
+			</if>
+			<if test="wjbm != null and wjbm != ''">
+				and b.wjbm = #{wjbm}
+			</if>
+		</where>
+		<!-- 取最新的数据 -->
+		order by b.ymdhms desc
+	</select>
+</mapper>

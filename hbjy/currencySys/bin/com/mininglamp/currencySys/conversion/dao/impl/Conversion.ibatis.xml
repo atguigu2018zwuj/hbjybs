@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="conversion">
+
+	<!-- 数据入库 -->
+	<select id="getBs" resultType="Map" parameterType="Map">
+		SELECT
+		T.TABLENAME "key",
+		case
+	    	when T.BIAOSHI ='11' then '入库成功'
+	      	when T.BIAOSHI ='12' then '入库失败'
+        end "scbwxx"
+		FROM
+		GENERATEREPORT T
+		where  
+		T.biaoshi &gt; 10 and T.biaoshi &lt; 20
+		and T.sjrq = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+	</select>
+	
+	<!-- 数据转换 -->
+	<select id="getTransformation" resultType="map" parameterType="map">
+	 	    select 
+			T.TABLENAME "key",
+			T.CODE_VALUE "text",
+			T.ID "id",
+			T.PID "pid",
+			case when G.BIAOSHI ='13' then '转换成功'
+			when G.BIAOSHI ='14' then '转换失败'
+				end "scbwxx"
+		from (
+			select 
+			*
+			from user_authority
+			where id in
+			(
+				select  distinct(id) FROM USER_AUTHORITY  START WITH id in
+				(
+					select id
+					from (select t.*, to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD') as thedate from user_authority t)
+					where bitand(decode(thedate, last_day(thedate), power(2, extract(month from thedate)), 0) + 1, mask) > 0 and issgbs = '0'	
+					<if test="bm != null and bm != ''">
+						and TABLENAME like '%${bm}%'
+					</if>
+					<if test="ywm != null and ywm != ''">
+						and CODE_VALUE like '%${ywm}%'
+					</if>
+				) 
+				 CONNECT BY PRIOR pid = id
+			)
+		) T
+		left join (SELECT * FROM GENERATEREPORT WHERE SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')) G 
+			on T.TABLENAME = G.TABLENAME
+		order by T.ID  
+		
+		<!-- 新的sql -->
+		
+		
+		<!--  select 
+			T.TABLENAME "key",
+			T.CODE_KEY "ywbm",
+			T.CODE_VALUE "text",
+			T.ID "id",
+			T.PID "pid",
+			G.BIAOSHI "scbwxx_code",
+			case when G.BIAOSHI = '1' then '生成报文成功'
+				when G.BIAOSHI = '2' then '生成报文失败'
+				when G.BIAOSHI = '3' then '校验成功'
+				when G.BIAOSHI = '4' then '校验失败'
+				when G.BIAOSHI = '5' then '上报成功'
+				when G.BIAOSHI = '6' then '上报失败'
+				when G.BIAOSHI = '66' then '强制性校验错误'
+				end "scbwxx",
+			case when (G.BIAOSHI = '1' or G.BIAOSHI = '3' or G.BIAOSHI = '5') then 'true'
+	        	when (G.BIAOSHI = '2' or G.BIAOSHI = '4' or G.BIAOSHI = '6' or G.BIAOSHI = '66') then 'false'
+	        	else ''
+	        	end as "ispass"
+				
+		from (
+			select 
+			*
+			from user_authority
+			where id in
+			(
+				select  distinct(id) FROM USER_AUTHORITY  START WITH id in
+				(
+				查询所有满足条件（必填：数据日期）的报送表
+				TODO 报送管理-报文管理 添加查询条件【是否通过】(正在确认)
+					<choose>
+				    	<when test="ispass == null or ispass == ''">
+				    		select id
+							from (select t.*, to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD') as thedate from user_authority t)
+							where bitand(decode(thedate, last_day(thedate), power(2, extract(month from thedate)), 0) + 1, mask) > 0
+							<if test="bm != null and bm != ''">
+								and TABLENAME like '%${bm}%'
+							</if>
+							<if test="ywm != null and ywm != ''">
+								and CODE_VALUE like '%${ywm}%'
+							</if>
+				    	</when>
+				    	<otherwise>
+				    		select 
+								ua.id 
+							from 
+								(select t.*, to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD') as thedate from user_authority t) ua,
+								GENERATEREPORT gp
+							where 
+								bitand(decode(ua.thedate, last_day(ua.thedate), power(2, extract(month from ua.thedate)),0) + 1,ua.mask) > 0
+								and gp.SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')
+								and ua.CODE_KEY = gp.TABLENAME
+								<choose>
+							    	<when test="ispass == 'true'">
+							    		and gp.BIAOSHI in ('1','3','5')
+							    	</when>
+							    	<when test="ispass == 'false'">
+							    		and gp.BIAOSHI in ('2','4','6','66')
+							    	</when>
+							   	</choose>
+			  					<if test="bm != null and bm != ''">
+									and ua.TABLENAME like '%${bm}%'
+								</if>
+								<if test="ywm != null and ywm != ''">
+									and ua.CODE_VALUE like '%${ywm}%'
+								</if>
+				    	</otherwise>
+				   	</choose>
+				) 
+			查询报送表的父级节点
+				 CONNECT BY PRIOR pid = id
+			)
+		) T
+	查询报送标识
+		left join (SELECT * FROM GENERATEREPORT WHERE SJRQ = to_date(#{beginSjrq,jdbcType=DATE}, 'YYYY-MM-DD')) G 
+			on T.CODE_KEY = G.TABLENAME
+		order by T.ID  -->
+	</select>
+</mapper>

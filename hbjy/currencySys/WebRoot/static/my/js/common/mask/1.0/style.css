@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+.mask{
+  background-color: #000;
+  opacity: .4;
+  filter: alpha(opacity=40);
+  -moz-opacity: 0.4;
+  -khtml-opacity: 0.4;
+  z-index: 999;
+  position: absolute;
+  top: 0;
+  color: #fff;
+}
+.mask>.loading{min-width:32px; min-height:32px; background:url(images/loading.gif) center center no-repeat;height: 100%;}
